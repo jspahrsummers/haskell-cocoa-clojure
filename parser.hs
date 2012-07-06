@@ -113,6 +113,8 @@ anonymousFunction = do
     let sortArgs :: Symbol -> Symbol -> Ordering
         sortArgs (Symbol "%") _ = LT
         sortArgs _ (Symbol "%") = GT
+
+        -- TODO: Rest arguments need to be renamed (to begin, instead of end, with &) as part of the rewriting
         sortArgs (Symbol "%&") _ = GT
         sortArgs _ (Symbol "%&") = LT
         sortArgs (Symbol a) (Symbol b) =
