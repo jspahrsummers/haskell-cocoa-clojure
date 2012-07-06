@@ -1,6 +1,4 @@
 *.hi
 *.o
-main
 *.ll
 *.S
-output
