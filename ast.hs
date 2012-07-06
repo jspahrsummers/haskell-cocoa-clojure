@@ -1,5 +1,7 @@
 module AST where
 
+import Data.Monoid
+
 newtype Symbol = Symbol String
     deriving Show
 
@@ -51,3 +53,17 @@ data Form =
 --}
 
     deriving Show
+
+-- Folds over all forms in an AST
+foldForm :: Monoid m => (Form -> m) -> Form -> m
+foldForm f form@(List forms) = f form `mappend` foldFormList f forms
+foldForm f form@(Vector forms) = f form `mappend` foldFormList f forms
+foldForm f form@(Set forms) = f form `mappend` foldFormList f forms
+foldForm f form@(Map kvs) =
+    let kvf (k, v) = foldForm f k `mappend` foldForm f v
+    in f form `mappend` mconcat (fmap kvf kvs)
+
+foldForm f form = f form
+
+foldFormList :: Monoid m => (Form -> m) -> [Form] -> m
+foldFormList f forms = mconcat (fmap (foldForm f) forms)
