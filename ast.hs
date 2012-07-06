@@ -19,6 +19,7 @@ data InvokeMethod = InvokeMethod [Param] [Form]
     deriving Show
 
 data Form =
+    EmptyForm |
     SymbolForm Symbol |
     StringLiteral String |
     IntegerLiteral Integer |

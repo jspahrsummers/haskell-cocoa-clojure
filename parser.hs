@@ -3,12 +3,13 @@ module Parser where
 
 import AST
 import Control.Monad
+import Data.List
 import Text.Parsec
 import Text.Parsec.Char
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as P
 
-symbolSpecialChar = oneOf "*+!-_?/."
+symbolSpecialChar = oneOf "*+!-_?/.%"
 
 -- Language definition parameters specific to Clojure
 lexer = P.makeTokenParser emptyDef {
@@ -54,14 +55,19 @@ mapLiteral =
     in liftM Map $ braces (many keyValuePair)
 
 setLiteral = do
-    char '#'
+    try $ char '#'
     liftM Set $ braces (many form)
 
 form = do
     whiteSpace
+
     nil <|> true <|> false <|>
+        -- reader macros
+        ignoreNext <|> quotedForm <|> deref <|> varQuote <|> anonymousFunction <|>
+
         numberLiteral <|> stringLiteral <|> characterLiteral <|>
         setLiteral <|> listLiteral <|> vectorLiteral <|> mapLiteral <|>
+
         identifier
 
 -- TODO: Move everything below here into a read table implementation
@@ -84,3 +90,44 @@ characterLiteral = do
         try spaceLiteral <|>
         try tabLiteral <|>
         anyChar
+
+ignoreNext = do
+    try $ symbol "#_"
+    form
+    return EmptyForm
+
+anonymousFunction = do
+    try $ char '#'
+    f <- listLiteral
+
+    let symbolIsArgLiteral :: Symbol -> Bool
+        symbolIsArgLiteral (Symbol s) = (head s) == '%'
+
+    let collectArgLiterals :: Form -> [Symbol]
+        collectArgLiterals (SymbolForm sym) = if symbolIsArgLiteral sym then [sym] else []
+        collectArgLiterals _ = []
+
+    let sortArgs :: Symbol -> Symbol -> Ordering
+        sortArgs (Symbol "%") _ = LT
+        sortArgs _ (Symbol "%") = GT
+        sortArgs (Symbol "%&") _ = GT
+        sortArgs _ (Symbol "%&") = LT
+        sortArgs (Symbol a) (Symbol b) =
+           compare (read (tail a) :: Int) (read (tail b) :: Int)
+
+    let args = sortBy sortArgs $ foldForm collectArgLiterals f
+
+    -- #(...) => (fn [args] (...))
+    return $ List [SymbolForm (Symbol "fn"), Vector (map SymbolForm args), f]
+
+quotedForm = formMacro "'" "quote"
+deref = formMacro "@" "deref"
+varQuote = formMacro "#'" "var"
+
+formMacro sym name = do
+    try $ symbol sym
+    f <- form
+    return $ List [SymbolForm (Symbol name), f]
+
+-- TODO: regex patterns
+-- TODO: syntax-quote (`), unquote (~), unquote-splicing (~@)
