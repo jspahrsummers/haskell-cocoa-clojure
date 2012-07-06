@@ -21,7 +21,7 @@ compile (x:xs) = do
     outFD <- openFile (x ++ ".ll") WriteMode
     contents <- readFile x
 
-    either printErrorAndExit (putForms outFD) (parse Parser.forms x contents)
+    either printErrorAndExit (codegenToFile outFD) (parse Parser.forms x contents)
 
 main :: IO ()
 main = do

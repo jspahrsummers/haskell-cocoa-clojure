@@ -3,6 +3,7 @@ module REPL (repl)
 
 import AST
 import Data.Char
+import LLVMCodeGen
 import Parser
 import System.Exit
 import System.IO
@@ -30,7 +31,11 @@ repl' s =
     in do
         case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
             Left err -> putStrLn $ show err
-            Right forms -> putStrLn $ concatMap show forms
+            Right forms -> do
+                putStrLn $ concatMap show forms
+
+                llvm <- codegen forms
+                putStrLn llvm
 
         putStr "=> "
 
