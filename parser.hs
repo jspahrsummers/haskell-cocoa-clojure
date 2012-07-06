@@ -18,11 +18,15 @@ lexer = P.makeTokenParser emptyDef {
     P.commentLine = ";"
 }
 
-parens = P.parens lexer
 reserved = P.reserved lexer
+stringLiteral = P.stringLiteral lexer
+characterLiteral = P.charLiteral lexer
+parens = P.parens lexer
+brackets = P.brackets lexer
+braces = P.braces lexer
 
--- The naming here might be confusing for Parsec users, since P.symbol matches
--- any given string, but this matches Clojure terminology
+-- The naming here might be confusing for Parsec users, since P.symbol normally
+-- matches any given string, but this matches Clojure terminology
 symbol = P.identifier lexer
 
 whiteSpace = skipMany (space <|> char ',')
@@ -43,5 +47,18 @@ true = do
 false = do
     reserved "false"
     return $ BooleanLiteral False
+
+listLiteral = liftM List $ parens (many form)
+vectorLiteral = liftM Vector $ brackets (many form)
+
+tuple2 :: [a] -> (a,a)
+tuple2 [x,y] = (x,y)
+
+keyValuePair = liftM tuple2 $ count 2 form
+mapLiteral = liftM Map $ braces (many keyValuePair)
+
+setLiteral = do
+    char '#'
+    liftM Set $ braces (many form)
 
 form = return NilLiteral
