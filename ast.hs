@@ -33,6 +33,7 @@ data Form =
     Map [(Form, Form)] |
     Set [Form] |
 
+{--
     SpecialFormDef { symbol :: Symbol, init :: Form } |
     SpecialFormIf { test :: Form, thenClause :: Form, elseClause :: Form } |
     SpecialFormDo [Form] |
@@ -47,5 +48,6 @@ data Form =
     SpecialFormSet Symbol Form
 
     -- TODO: monitor-enter, monitor-exit?
+--}
 
     deriving Show
