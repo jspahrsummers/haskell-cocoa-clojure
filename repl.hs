@@ -12,7 +12,7 @@ import Text.Parsec
 dropControlCharacters :: String -> (String, String)
 dropControlCharacters "" = ("", "")
 dropControlCharacters s
-    | x == '\EOT' = ("", "")
+    | x == '\EOT' = ("\EOT", "")
     | x == '\n' = ("\n", dropWhile isSpace $ tail s)
     | otherwise =
         let (new_xs, left) = dropControlCharacters $ tail s
@@ -28,20 +28,19 @@ repl' s =
         fixupBackspaces left '\DEL' = init left
         fixupBackspaces left right = left ++ [right]
 
-    in do
-        case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
-            Left err -> putStrLn $ show err
-            Right forms -> do
-                putStrLn $ concatMap show forms
+    in if last now == '\EOT'
+        then putStrLn "\nQuit"
+        else do
+            case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
+                Left err -> putStrLn $ show err
+                Right forms -> do
+                    putStrLn $ concatMap show forms
 
-                llvm <- codegen forms
-                putStrLn llvm
+                    llvm <- codegen forms
+                    putStrLn llvm
 
-        putStr "=> "
-
-        if null left
-            then putStrLn "\nQuit"
-            else repl' left
+            putStr "=> "
+            repl' left
 
 repl :: IO ()
 repl = do
