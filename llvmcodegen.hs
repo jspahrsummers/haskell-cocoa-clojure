@@ -3,5 +3,5 @@ module LLVMCodeGen where
 import AST
 import System.IO
 
-putForm :: Handle -> Form -> IO ()
-putForm _ _ = putStrLn "Unimplemented"
+putForms :: Handle -> [Form] -> IO ()
+putForms _ _ = putStrLn "Unimplemented"

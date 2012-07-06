@@ -70,6 +70,8 @@ form = do
 
         identifier
 
+forms = many form
+
 -- TODO: Move everything below here into a read table implementation
 -- (i.e., they should be reader macros, not hardcoded)
 

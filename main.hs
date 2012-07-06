@@ -16,4 +16,4 @@ main :: IO ()
 main = do
     outFD <- openFile "output.ll" WriteMode
     contents <- getFileContents "input.clj"
-    either printErrorAndExit (putForm outFD) (parse Parser.form "" contents)
+    either printErrorAndExit (putForms outFD) (parse Parser.forms "" contents)
