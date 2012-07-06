@@ -9,7 +9,7 @@ import Text.Parsec.Char
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as P
 
-symbolSpecialChar = oneOf "*+!-_?/.%"
+symbolSpecialChar = oneOf "*+!-_?/.%:"
 
 -- Language definition parameters specific to Clojure
 lexer = P.makeTokenParser emptyDef {
