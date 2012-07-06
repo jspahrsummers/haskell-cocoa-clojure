@@ -51,7 +51,7 @@ listLiteral = liftM List $ parens (many form)
 vectorLiteral = liftM Vector $ brackets (many form)
 
 mapLiteral =
-    let keyValuePair = liftM (\[x,y] -> (x,y)) $ count 2 form
+    let keyValuePair = liftM (\[x,y] -> (KeyValuePair x y)) $ count 2 form
     in liftM Map $ braces (many keyValuePair)
 
 setLiteral = do

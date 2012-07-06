@@ -1,22 +1,15 @@
 module AST where
 
 import Data.Monoid
+import Data.Ratio
 
 newtype Symbol = Symbol String
-    deriving Show
+instance Show Symbol where
+    show (Symbol s) = s
 
-data Binding =
-    -- TODO: Destructuring
-    SymbolBinding Symbol
-    deriving Show
-
-data Param =
-    PositionalParam Binding |
-    RestParam Binding
-    deriving Show
-
-data InvokeMethod = InvokeMethod [Param] [Form]
-    deriving Show
+data KeyValuePair = KeyValuePair Form Form
+instance Show KeyValuePair where
+    show (KeyValuePair k v) = (show k) ++ " " ++ (show v)
 
 data Form =
     EmptyForm |
@@ -33,36 +26,44 @@ data Form =
     BooleanLiteral Bool |
     List [Form] |
     Vector [Form] |
-    Map [(Form, Form)] |
+    Map [KeyValuePair] |
     Set [Form]
 
-{--
-    SpecialFormDef { symbol :: Symbol, init :: Form } |
-    SpecialFormIf { test :: Form, thenClause :: Form, elseClause :: Form } |
-    SpecialFormDo [Form] |
-    SpecialFormLet { bindings :: [(Binding, Form)], exprs :: [Form] } |
-    SpecialFormQuote Form |
-    SpecialFormVar Symbol |
-    SpecialFormFn { name :: Symbol, invokeMethods :: [InvokeMethod] } |
-    SpecialFormLoop { bindings :: [(Binding, Form)], exprs :: [Form] } |
-    SpecialFormRecur [Form] |
-    SpecialFormThrow Form |
-    -- TODO: try
-    SpecialFormSet Symbol Form
+commaShow x = ", " ++ (show x)
+spaceShow x = " " ++ (show x)
 
-    -- TODO: monitor-enter, monitor-exit?
---}
+instance Show Form where
+    show EmptyForm = ""
+    show (SymbolForm s) = show s
+    show (StringLiteral s) = "\"" ++ s ++ "\""
+    show (IntegerLiteral n) = show n
+    show (RationalLiteral n) = (show $ numerator n) ++ "/" ++ (show $ denominator n)
+    show (DecimalLiteral n) = show n
+    show (CharacterLiteral c) = case c of
+        '\n' -> "\\newline"
+        '\t' -> "\\tab"
+        _ -> "'" ++ [c] ++ "'"
 
-    deriving Show
+    show NilLiteral = "nil"
+    show (BooleanLiteral True) = "true"
+    show (BooleanLiteral False) = "false"
+    show (List []) = "()"
+    show (List (x:xs)) = "(" ++ (show x) ++ (concatMap spaceShow xs) ++ ")"
+    show (Vector []) = "[]"
+    show (Vector (x:xs)) = "[" ++ (show x) ++ (concatMap spaceShow xs) ++ "]"
+    show (Set []) = "#{}"
+    show (Set (x:xs)) = "#{" ++ (show x) ++ (concatMap spaceShow xs) ++ "}"
+    show (Map []) = "{}"
+    show (Map (x:xs)) = "{" ++ (show x) ++ (concatMap commaShow xs) ++ "}"
 
 -- Folds over all forms in an AST
 foldForm :: Monoid m => (Form -> m) -> Form -> m
 foldForm f form@(List forms) = f form `mappend` foldFormList f forms
 foldForm f form@(Vector forms) = f form `mappend` foldFormList f forms
 foldForm f form@(Set forms) = f form `mappend` foldFormList f forms
-foldForm f form@(Map kvs) =
-    let kvf (k, v) = foldForm f k `mappend` foldForm f v
-    in f form `mappend` mconcat (fmap kvf kvs)
+foldForm f form@(Map kvps) =
+    let kvf (KeyValuePair k v) = foldForm f k `mappend` foldForm f v
+    in f form `mappend` mconcat (fmap kvf kvps)
 
 foldForm f form = f form
 
