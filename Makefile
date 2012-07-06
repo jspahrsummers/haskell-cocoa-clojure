@@ -1,19 +1,19 @@
-BINARY = bin/llvm-clojure
+BINARY = bin/cocoa-clojure
 GHC = ghc
 GHCFLAGS = -fllvm
 
-all: llvm-clojure
+all: cocoa-clojure
 
 clean:
 	rm -f $(BINARY)
 	rm -f compiler/*.hi
 	rm -f compiler/*.o
 
-llvm-clojure:
+cocoa-clojure:
 	$(GHC) $(GHCFLAGS) -o $(BINARY) compiler/*.hs
 
-install: llvm-clojure
+install: cocoa-clojure
 	install $(BINARY) /usr/local/bin/
 
-repl: llvm-clojure
+repl: cocoa-clojure
 	$(BINARY)
