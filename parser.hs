@@ -19,22 +19,23 @@ lexer = P.makeTokenParser emptyDef {
 }
 
 reserved = P.reserved lexer
-stringLiteral = P.stringLiteral lexer
-characterLiteral = P.charLiteral lexer
 parens = P.parens lexer
 brackets = P.brackets lexer
 braces = P.braces lexer
 
+whiteSpace = skipMany (space <|> char ',')
+
+stringLiteral = liftM StringLiteral $ P.stringLiteral lexer
+characterLiteral = liftM CharacterLiteral $ P.charLiteral lexer
+
 -- The naming here might be confusing for Parsec users, since P.symbol normally
 -- matches any given string, but this matches Clojure terminology
-symbol = P.identifier lexer
-
-whiteSpace = skipMany (space <|> char ',')
+symbol = liftM (SymbolForm . Symbol) $ P.identifier lexer
 
 -- TODO: Clojure number parsing rules
 -- TODO: ratio support
 -- TODO: BigDecimal support
-number = liftM (either IntegerLiteral DecimalLiteral) $ P.naturalOrFloat lexer
+numberLiteral = liftM (either IntegerLiteral DecimalLiteral) $ P.naturalOrFloat lexer
 
 nil = do
     reserved "nil"
@@ -61,4 +62,9 @@ setLiteral = do
     char '#'
     liftM Set $ braces (many form)
 
-form = return NilLiteral
+form = do
+    whiteSpace
+    nil <|> true <|> false <|>
+        numberLiteral <|> stringLiteral <|> characterLiteral <|>
+        setLiteral <|> listLiteral <|> vectorLiteral <|> mapLiteral <|>
+        Parser.symbol
