@@ -22,14 +22,12 @@ reserved = P.reserved lexer
 parens = P.parens lexer
 brackets = P.brackets lexer
 braces = P.braces lexer
+symbol = P.symbol lexer
 
 whiteSpace = skipMany (space <|> char ',')
 
 stringLiteral = liftM StringLiteral $ P.stringLiteral lexer
-
--- The naming here might be confusing for Parsec users, since P.symbol normally
--- matches any given string, but this matches Clojure terminology
-symbol = liftM (SymbolForm . Symbol) $ P.identifier lexer
+identifier = liftM (SymbolForm . Symbol) $ P.identifier lexer
 
 -- TODO: Clojure number parsing rules
 -- TODO: ratio support
@@ -64,20 +62,20 @@ form = do
     nil <|> true <|> false <|>
         numberLiteral <|> stringLiteral <|> characterLiteral <|>
         setLiteral <|> listLiteral <|> vectorLiteral <|> mapLiteral <|>
-        Parser.symbol
+        identifier
 
 -- TODO: Move everything below here into a read table implementation
 -- (i.e., they should be reader macros, not hardcoded)
 
 characterLiteral = do
     let newlineLiteral = do
-            P.symbol lexer "newline"
+            symbol "newline"
             return '\n'
         spaceLiteral = do
-            P.symbol lexer "space"
+            symbol "space"
             return ' '
         tabLiteral = do
-            P.symbol lexer "tab"
+            symbol "tab"
             return '\t'
 
     char '\\'
