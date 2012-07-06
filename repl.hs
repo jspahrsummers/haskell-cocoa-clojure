@@ -1,4 +1,5 @@
-module REPL where
+module REPL (repl)
+    where
 
 import AST
 import Data.Char

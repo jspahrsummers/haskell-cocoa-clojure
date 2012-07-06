@@ -1,5 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
-module Parser where
+module Parser (forms)
+    where
 
 import AST
 import Control.Monad

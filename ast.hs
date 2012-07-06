@@ -1,4 +1,9 @@
-module AST where
+module AST (
+        Form(..),
+        KeyValuePair(..),
+        Symbol(..),
+        foldForm
+    ) where
 
 import Data.Monoid
 import Data.Ratio

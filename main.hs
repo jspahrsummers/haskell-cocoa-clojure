@@ -1,4 +1,5 @@
-module Main where
+module Main (main)
+    where
 
 import LLVMCodeGen
 import Parser
