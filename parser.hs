@@ -36,26 +36,6 @@ symbol = liftM (SymbolForm . Symbol) $ P.identifier lexer
 -- TODO: BigDecimal support
 numberLiteral = liftM (either IntegerLiteral DecimalLiteral) $ P.naturalOrFloat lexer
 
-newlineLiteral = do
-    P.symbol lexer "newline"
-    return '\n'
-
-spaceLiteral = do
-    P.symbol lexer "space"
-    return ' '
-
-tabLiteral = do
-    P.symbol lexer "tab"
-    return '\t'
-
-characterLiteral = do
-    char '\\'
-    liftM CharacterLiteral $
-        try newlineLiteral <|>
-        try spaceLiteral <|>
-        try tabLiteral <|>
-        anyChar
-
 nil = do
     reserved "nil"
     return NilLiteral
@@ -71,11 +51,9 @@ false = do
 listLiteral = liftM List $ parens (many form)
 vectorLiteral = liftM Vector $ brackets (many form)
 
-tuple2 :: [a] -> (a,a)
-tuple2 [x,y] = (x,y)
-
-keyValuePair = liftM tuple2 $ count 2 form
-mapLiteral = liftM Map $ braces (many keyValuePair)
+mapLiteral =
+    let keyValuePair = liftM (\[x,y] -> (x,y)) $ count 2 form
+    in liftM Map $ braces (many keyValuePair)
 
 setLiteral = do
     char '#'
@@ -87,3 +65,24 @@ form = do
         numberLiteral <|> stringLiteral <|> characterLiteral <|>
         setLiteral <|> listLiteral <|> vectorLiteral <|> mapLiteral <|>
         Parser.symbol
+
+-- TODO: Move everything below here into a read table implementation
+-- (i.e., they should be reader macros, not hardcoded)
+
+characterLiteral = do
+    let newlineLiteral = do
+            P.symbol lexer "newline"
+            return '\n'
+        spaceLiteral = do
+            P.symbol lexer "space"
+            return ' '
+        tabLiteral = do
+            P.symbol lexer "tab"
+            return '\t'
+
+    char '\\'
+    liftM CharacterLiteral $
+        try newlineLiteral <|>
+        try spaceLiteral <|>
+        try tabLiteral <|>
+        anyChar
