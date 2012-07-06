@@ -101,6 +101,9 @@ newtype LocalSymbol = LocalSymbol String
 instance Show LocalSymbol where
     show (LocalSymbol s) = "%" ++ s
 
+class Typeof a where
+    typeof :: a -> Type
+
 data Type =
     VoidType |
     OpaqueType |
@@ -124,11 +127,17 @@ instance Show Type where
     show (FunctionType r args) = (show r) ++ " (" ++ (showDelimList ", " args) ++ ")"
     show (TypeAlias sym) = show sym
 
+instance Typeof Type where
+    typeof t = t
+
 data Prototype = Prototype Type GlobalSymbol
     deriving Eq
 
 instance Show Prototype where
     show (Prototype (FunctionType r args) sym) = (show r) ++ " " ++ (show sym) ++ " (" ++ (showDelimList ", " args) ++ ")"
+
+instance Typeof Prototype where
+    typeof (Prototype t _) = t
 
 data BasicBlock =
     FuncDecl Prototype |
@@ -161,12 +170,17 @@ data Variable =
 instance Show Variable where
     show (Variable _ sym) = show sym
 
+instance Typeof Variable where
+    typeof (Variable t _) = t
+
 data Expression =
     IntegerLiteral Type Integer |
     FloatLiteral Type Double |
     StringLiteral String |
+    NullLiteral Type |
     LocalValue Variable |
     Call Prototype [Expression] |
+    Load Expression |
     GetElementPtr Type GlobalSymbol [Expression]
     deriving Eq
 
@@ -175,21 +189,25 @@ instance Show Expression where
     show (GetElementPtr t sym indexes) = "getelementptr " ++ (show $ PointerType t) ++ " " ++ (show sym) ++ ", " ++ (showDelimList ", " indexes)
     show (IntegerLiteral t v) = (show t) ++ " " ++ (show v)
     show (FloatLiteral t v) = (show t) ++ " " ++ (show v)
+    show (NullLiteral t) = (show t) ++ " null"
     show (LocalValue (Variable t sym)) = (show t) ++ " " ++ (show sym)
 
     -- StringLiterals are only ever used for constants
     -- TODO: escape special characters
+    -- TODO: make sure Unicode is handled correctly
     show lit@(StringLiteral str) = (show $ typeof lit) ++ " c\"" ++ str ++ "\""
 
-typeof :: Expression -> Type
-typeof (IntegerLiteral t _) = t
-typeof (FloatLiteral t _) = t
-typeof (StringLiteral str) = ArrayType (length str) (IntegerType 8)
-typeof (LocalValue (Variable t _)) = t
-typeof (Call (Prototype (FunctionType t _) _) _) = t
+instance Typeof Expression where
+    typeof (IntegerLiteral t _) = t
+    typeof (FloatLiteral t _) = t
+    typeof (StringLiteral str) = ArrayType (length str) (IntegerType 8)
+    typeof (NullLiteral t) = t
+    typeof (LocalValue v) = typeof v
+    typeof (Call p _) = typeof p
+    typeof (Load exp) = typeof exp
 
--- TODO: this isn't actually correct for all cases -- simply the ones we'll have for the time being
-typeof (GetElementPtr (PointerType t) _ _) = t
+    -- TODO: this isn't actually correct for all cases -- simply the ones we'll have for the time being
+    typeof (GetElementPtr (PointerType t) _ _) = t
 
 gepIndex :: Integer -> Expression
 gepIndex i = (IntegerLiteral (IntegerType 32) i)
