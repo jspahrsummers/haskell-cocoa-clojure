@@ -45,7 +45,7 @@ genForm (A.StringLiteral s) = do
 
     let global = GlobalSymbol $ "str" ++ (show id)
         val = StringLiteral s
-        var = Variable (typeof val) $ LocalSymbol ("str" ++ (show id))
+        var = Variable (typeof val) $ LocalSymbol $ "str" ++ (show id)
 
     tell $ [ConstantDecl global val]
 
@@ -54,15 +54,48 @@ genForm (A.StringLiteral s) = do
 
     return $ ([assign], var)
 
+genForm (A.IntegerLiteral n) = do
+    id <- lift uniqueId
+
+    -- TODO: this integer size shouldn't be hardcoded
+    -- TODO: handle bignums
+    let var = Variable (IntegerType 64) $ LocalSymbol $ "v" ++ (show id)
+        assign = AssignStatement var $ IntegerLiteral (typeof var) n
+
+    return $ ([assign], var)
+
+genForm (A.DecimalLiteral n) = do
+    id <- lift uniqueId
+
+    -- TODO: handle bignums
+    let var = Variable DoubleType $ LocalSymbol $ "v" ++ (show id)
+        assign = AssignStatement var $ FloatLiteral (typeof var) n
+
+    return $ ([assign], var)
+
+genForm A.NilLiteral = do
+    id <- lift uniqueId
+
+    let var = Variable (PointerType $ IntegerType 8) $ LocalSymbol $ "v" ++ (show id)
+        assign = AssignStatement var $ NullLiteral (typeof var)
+
+    return $ ([assign], var)
+
+genForm (A.BooleanLiteral b) = do
+    id <- lift uniqueId
+
+    let var = Variable (IntegerType 1) $ LocalSymbol $ "v" ++ (show id)
+        val = if b then 1 else 0
+        assign = AssignStatement var $ IntegerLiteral (typeof var) val
+
+    return $ ([assign], var)
+
+-- emit a string constant instead, since a single Unicode character may not map to a char
+genForm (A.CharacterLiteral c) = genForm $ A.StringLiteral [c]
+
 {-
 genForm (A.SymbolForm s) = 
-genForm (A.StringLiteral s) = 
-genForm (A.IntegerLiteral n) = 
 genForm (A.RationalLiteral n) = 
-genForm (A.DecimalLiteral n) = 
-genForm (A.CharacterLiteral c) = 
-genForm A.NilLiteral = 
-genForm (A.BooleanLiteral b) = 
 genForm (A.List x) = 
 genForm (A.Vector x) = 
 genForm (A.Set x) = 
