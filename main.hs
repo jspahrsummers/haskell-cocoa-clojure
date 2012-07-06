@@ -1,6 +1,5 @@
 module Main where
 
-import IO
 import LLVMCodeGen
 import Parser
 import System.Exit
@@ -15,5 +14,5 @@ printErrorAndExit e = do
 main :: IO ()
 main = do
     outFD <- openFile "output.ll" WriteMode
-    contents <- getFileContents "input.clj"
+    contents <- readFile "input.clj"
     either printErrorAndExit (putForms outFD) (parse Parser.forms "" contents)
