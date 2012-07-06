@@ -13,21 +13,21 @@ dropControlCharacters s
     | x == '\EOT' = ("", "")
     | x == '\n' = ("\n", dropWhile isSpace $ tail s)
     | otherwise =
-        let xs = tail s
-        in if head xs == '\DEL'
-            -- skip over the character before the backspace
-            then dropControlCharacters $ tail xs
-            else
-                let (new_xs, left) = (dropControlCharacters xs)
-                in (x : new_xs, left)
+        let (new_xs, left) = dropControlCharacters $ tail s
+        in (x : new_xs, left)
     where
         x = head s
 
 repl' :: String -> IO ()
 repl' s =
     let (now, left) = dropControlCharacters s
+
+        fixupBackspaces :: String -> Char -> String
+        fixupBackspaces left '\DEL' = init left
+        fixupBackspaces left right = left ++ [right]
+
     in do
-        case (parse Parser.forms "stdin" now) of
+        case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
             Left err -> putStrLn $ show err
             Right forms -> putStrLn $ concatMap show forms
 
