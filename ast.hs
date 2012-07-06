@@ -31,7 +31,7 @@ data Form =
     List [Form] |
     Vector [Form] |
     Map [(Form, Form)] |
-    Set [Form] |
+    Set [Form]
 
 {--
     SpecialFormDef { symbol :: Symbol, init :: Form } |
