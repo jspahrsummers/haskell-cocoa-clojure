@@ -50,13 +50,9 @@ instance Show Form where
     show NilLiteral = "nil"
     show (BooleanLiteral True) = "true"
     show (BooleanLiteral False) = "false"
-    show (List []) = "()"
     show (List x) = "(" ++ (showDelimList " " x) ++ ")"
-    show (Vector []) = "[]"
     show (Vector x) = "[" ++ (showDelimList " " x) ++ "]"
-    show (Set []) = "#{}"
     show (Set x) = "#{" ++ (showDelimList " " x) ++ "}"
-    show (Map []) = "{}"
     show (Map x) = "{" ++ (showDelimList ", " x) ++ "}"
 
 -- Folds over all forms in an AST
