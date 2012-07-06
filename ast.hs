@@ -7,6 +7,7 @@ module AST (
 
 import Data.Monoid
 import Data.Ratio
+import Util
 
 newtype Symbol = Symbol String
 instance Show Symbol where
@@ -34,9 +35,6 @@ data Form =
     Map [KeyValuePair] |
     Set [Form]
 
-commaShow x = ", " ++ (show x)
-spaceShow x = " " ++ (show x)
-
 instance Show Form where
     show EmptyForm = ""
     show (SymbolForm s) = show s
@@ -53,13 +51,13 @@ instance Show Form where
     show (BooleanLiteral True) = "true"
     show (BooleanLiteral False) = "false"
     show (List []) = "()"
-    show (List (x:xs)) = "(" ++ (show x) ++ (concatMap spaceShow xs) ++ ")"
+    show (List x) = "(" ++ (showDelimList " " x) ++ ")"
     show (Vector []) = "[]"
-    show (Vector (x:xs)) = "[" ++ (show x) ++ (concatMap spaceShow xs) ++ "]"
+    show (Vector x) = "[" ++ (showDelimList " " x) ++ "]"
     show (Set []) = "#{}"
-    show (Set (x:xs)) = "#{" ++ (show x) ++ (concatMap spaceShow xs) ++ "}"
+    show (Set x) = "#{" ++ (showDelimList " " x) ++ "}"
     show (Map []) = "{}"
-    show (Map (x:xs)) = "{" ++ (show x) ++ (concatMap commaShow xs) ++ "}"
+    show (Map x) = "{" ++ (showDelimList ", " x) ++ "}"
 
 -- Folds over all forms in an AST
 foldForm :: Monoid m => (Form -> m) -> Form -> m
