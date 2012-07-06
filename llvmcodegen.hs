@@ -94,7 +94,7 @@ genForm (A.BooleanLiteral b) = do
 genForm (A.CharacterLiteral c) = genForm $ A.StringLiteral [c]
 
 {-
-genForm (A.SymbolForm s) = 
+genForm (A.Symbol s) = 
 genForm (A.RationalLiteral n) = 
 genForm (A.List x) = 
 genForm (A.Vector x) = 

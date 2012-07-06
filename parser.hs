@@ -29,7 +29,7 @@ symbol = P.symbol lexer
 whiteSpace = skipMany (space <|> char ',')
 
 stringLiteral = liftM StringLiteral $ P.stringLiteral lexer
-identifier = liftM (SymbolForm . Symbol) $ P.identifier lexer
+identifier = liftM Symbol $ P.identifier lexer
 
 -- TODO: Clojure number parsing rules
 -- TODO: ratio support
@@ -103,14 +103,14 @@ anonymousFunction = do
     try $ char '#'
     f <- listLiteral
 
-    let symbolIsArgLiteral :: Symbol -> Bool
-        symbolIsArgLiteral (Symbol s) = (head s) == '%'
+    let symbolIsArgLiteral :: String -> Bool
+        symbolIsArgLiteral s = (head s) == '%'
 
-    let collectArgLiterals :: Form -> [Symbol]
-        collectArgLiterals (SymbolForm sym) = if symbolIsArgLiteral sym then [sym] else []
+    let collectArgLiterals :: Form -> [Form]
+        collectArgLiterals sym@(Symbol s) = if symbolIsArgLiteral s then [sym] else []
         collectArgLiterals _ = []
 
-    let sortArgs :: Symbol -> Symbol -> Ordering
+    let sortArgs :: Form -> Form -> Ordering
         sortArgs (Symbol "%") _ = LT
         sortArgs _ (Symbol "%") = GT
 
@@ -123,7 +123,7 @@ anonymousFunction = do
     let args = sortBy sortArgs $ foldForm collectArgLiterals f
 
     -- #(...) => (fn [args] (...))
-    return $ List [SymbolForm (Symbol "fn"), Vector (map SymbolForm args), f]
+    return $ List [Symbol "fn", Vector args, f]
 
 quotedForm = formMacro "'" "quote"
 deref = formMacro "@" "deref"
@@ -132,7 +132,7 @@ varQuote = formMacro "#'" "var"
 formMacro sym name = do
     try $ symbol sym
     f <- form
-    return $ List [SymbolForm (Symbol name), f]
+    return $ List [Symbol name, f]
 
 -- TODO: regex patterns
 -- TODO: syntax-quote (`), unquote (~), unquote-splicing (~@)

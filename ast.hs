@@ -1,7 +1,6 @@
 module AST (
         Form(..),
         KeyValuePair(..),
-        Symbol(..),
         foldForm
     ) where
 
@@ -9,17 +8,13 @@ import Data.Monoid
 import Data.Ratio
 import Util
 
-newtype Symbol = Symbol String
-instance Show Symbol where
-    show (Symbol s) = s
-
 data KeyValuePair = KeyValuePair Form Form
 instance Show KeyValuePair where
     show (KeyValuePair k v) = (show k) ++ " " ++ (show v)
 
 data Form =
     EmptyForm |
-    SymbolForm Symbol |
+    Symbol String |
     StringLiteral String |
     IntegerLiteral Integer |
     RationalLiteral Rational |
@@ -37,7 +32,7 @@ data Form =
 
 instance Show Form where
     show EmptyForm = ""
-    show (SymbolForm s) = show s
+    show (Symbol s) = s
     show (StringLiteral s) = "\"" ++ s ++ "\""
     show (IntegerLiteral n) = show n
     show (RationalLiteral n) = (show $ numerator n) ++ "/" ++ (show $ denominator n)
