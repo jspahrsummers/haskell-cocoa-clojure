@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D019C8BF15A7B88D004CBD41 /* CLJList.h in Headers */ = {isa = PBXBuildFile; fileRef = D019C8BD15A7B88D004CBD41 /* CLJList.h */; };
+		D019C8C015A7B88D004CBD41 /* CLJList.m in Sources */ = {isa = PBXBuildFile; fileRef = D019C8BE15A7B88D004CBD41 /* CLJList.m */; };
+		D019C8C215A7B89F004CBD41 /* CocoaClojureRuntime.h in Headers */ = {isa = PBXBuildFile; fileRef = D019C8C115A7B89F004CBD41 /* CocoaClojureRuntime.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0D5CCC515A7B6EA007C336F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC415A7B6EA007C336F /* Cocoa.framework */; };
-		D0D5CCCF15A7B6EA007C336F /* CocoaClojureRuntime.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D5CCCE15A7B6EA007C336F /* CocoaClojureRuntime.m */; };
 		D0D5CCD715A7B6EA007C336F /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCD615A7B6EA007C336F /* SenTestingKit.framework */; };
 		D0D5CCD815A7B6EA007C336F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC415A7B6EA007C336F /* Cocoa.framework */; };
 		D0D5CCDB15A7B6EA007C336F /* libCocoaClojureRuntime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC115A7B6EA007C336F /* libCocoaClojureRuntime.a */; };
@@ -42,14 +44,15 @@
 		D019C8B915A7B797004CBD41 /* Mac-Framework.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Framework.xcconfig"; sourceTree = "<group>"; };
 		D019C8BA15A7B797004CBD41 /* Mac-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
 		D019C8BB15A7B797004CBD41 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		D019C8BD15A7B88D004CBD41 /* CLJList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CLJList.h; sourceTree = "<group>"; };
+		D019C8BE15A7B88D004CBD41 /* CLJList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CLJList.m; sourceTree = "<group>"; };
+		D019C8C115A7B89F004CBD41 /* CocoaClojureRuntime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaClojureRuntime.h; sourceTree = "<group>"; };
 		D0D5CCC115A7B6EA007C336F /* libCocoaClojureRuntime.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCocoaClojureRuntime.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0D5CCC415A7B6EA007C336F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D0D5CCC715A7B6EA007C336F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		D0D5CCC815A7B6EA007C336F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		D0D5CCC915A7B6EA007C336F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0D5CCCC15A7B6EA007C336F /* CocoaClojureRuntime-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CocoaClojureRuntime-Prefix.pch"; sourceTree = "<group>"; };
-		D0D5CCCD15A7B6EA007C336F /* CocoaClojureRuntime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CocoaClojureRuntime.h; sourceTree = "<group>"; };
-		D0D5CCCE15A7B6EA007C336F /* CocoaClojureRuntime.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CocoaClojureRuntime.m; sourceTree = "<group>"; };
 		D0D5CCD515A7B6EA007C336F /* CocoaClojureRuntimeTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CocoaClojureRuntimeTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0D5CCD615A7B6EA007C336F /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		D0D5CCDE15A7B6EA007C336F /* CocoaClojureRuntimeTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CocoaClojureRuntimeTests-Info.plist"; sourceTree = "<group>"; };
@@ -142,6 +145,24 @@
 			path = "Mac OS X";
 			sourceTree = "<group>";
 		};
+		D019C8C315A7B8A3004CBD41 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				D019C8BD15A7B88D004CBD41 /* CLJList.h */,
+				D019C8BE15A7B88D004CBD41 /* CLJList.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		D019C8C415A7B8B2004CBD41 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				D0D5CCE215A7B6EA007C336F /* CocoaClojureRuntimeTests.h */,
+				D0D5CCE315A7B6EA007C336F /* CocoaClojureRuntimeTests.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
 		D0D5CCB615A7B6EA007C336F = {
 			isa = PBXGroup;
 			children = (
@@ -185,8 +206,8 @@
 		D0D5CCCA15A7B6EA007C336F /* CocoaClojureRuntime */ = {
 			isa = PBXGroup;
 			children = (
-				D0D5CCCD15A7B6EA007C336F /* CocoaClojureRuntime.h */,
-				D0D5CCCE15A7B6EA007C336F /* CocoaClojureRuntime.m */,
+				D019C8C115A7B89F004CBD41 /* CocoaClojureRuntime.h */,
+				D019C8C315A7B8A3004CBD41 /* Classes */,
 				D0D5CCCB15A7B6EA007C336F /* Supporting Files */,
 			);
 			path = CocoaClojureRuntime;
@@ -203,8 +224,7 @@
 		D0D5CCDC15A7B6EA007C336F /* CocoaClojureRuntimeTests */ = {
 			isa = PBXGroup;
 			children = (
-				D0D5CCE215A7B6EA007C336F /* CocoaClojureRuntimeTests.h */,
-				D0D5CCE315A7B6EA007C336F /* CocoaClojureRuntimeTests.m */,
+				D019C8C415A7B8B2004CBD41 /* Classes */,
 				D0D5CCDD15A7B6EA007C336F /* Supporting Files */,
 			);
 			path = CocoaClojureRuntimeTests;
@@ -226,6 +246,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D019C8BF15A7B88D004CBD41 /* CLJList.h in Headers */,
+				D019C8C215A7B89F004CBD41 /* CocoaClojureRuntime.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,7 +349,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0D5CCCF15A7B6EA007C336F /* CocoaClojureRuntime.m in Sources */,
+				D019C8C015A7B88D004CBD41 /* CLJList.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
