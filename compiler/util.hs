@@ -1,8 +1,7 @@
 module Util (showDelimList)
     where
 
+import Data.List
+
 showDelimList :: Show a => String -> [a] -> String
-showDelimList s [] = ""
-showDelimList s (x:xs) =
-    let sepThenShow x = s ++ (show x)
-    in (show x) ++ (concatMap sepThenShow xs)
+showDelimList s l = intercalate s $ map show l
