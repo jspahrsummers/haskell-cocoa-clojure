@@ -139,5 +139,6 @@ formMacro sym name = do
     f <- form
     return $ List [Symbol name, f]
 
+-- TODO: metadata
 -- TODO: regex patterns
 -- TODO: syntax-quote (`), unquote (~), unquote-splicing (~@)
