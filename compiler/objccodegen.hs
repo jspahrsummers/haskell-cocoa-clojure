@@ -439,7 +439,8 @@ data Expr =
     NSStringLiteral String |
     NSArrayLiteral [Expr] |
     NSDictionaryLiteral [(Expr, Expr)] |
-    BlockLiteral { blockType :: Type, blockParams :: [Identifier], blockStmts :: [Statement] } |
+    -- retType is required only if it cannot be inferred from Return statements
+    BlockLiteral { retType :: Maybe Type, blockParams :: [(Type, Identifier)], blockStmts :: [Statement] } |
     CompoundExpr [Statement] |
     IdentExpr Identifier |
     ToObjExpr Expr |
@@ -465,11 +466,15 @@ instance Typeof Expr where
     typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
     typeof NSArrayLiteral {} = InstanceType $ Identifier "NSArray"
     typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
-    typeof BlockLiteral { blockType = t } = t
-    typeof cl@(CompoundExpr stmts) = case last stmts of
-        (Statement expr) -> typeof expr
-        _ -> InferredType cl
+    typeof (BlockLiteral (Just t) ps _) =
+        let pts = fst $ unzip ps
+        in BlockType t pts
 
+    typeof bl@(BlockLiteral Nothing ps stmts) =
+        let pts = fst $ unzip ps
+        in BlockType (typeof $ last stmts) pts
+
+    typeof cl@(CompoundExpr stmts) = typeof $ last stmts
     typeof (ToObjExpr expr) = IdType
     typeof (AssignExpr _ expr) = typeof expr
     typeof (IfExpr _ expr _) = typeof expr
@@ -495,10 +500,10 @@ instance Show Expr where
             showPair (k, v) = (show k) ++ ": " ++ (show v)
         in "@{" ++ (intercalate ", " $ map showPair kvs) ++ "}"
 
-    show (BlockLiteral (BlockType r pts) pns stmts) = 
-        let showNamedParam :: (Identifier, Type) -> String
-            showNamedParam (p, t) = (show t) ++ " " ++ (show p)
-        in "(^ " ++ (show r) ++ " (" ++ (intercalate ", " $ map showNamedParam $ zip pns pts) ++ ") {\n" ++
+    show (BlockLiteral r ps stmts) = 
+        let showNamedParam :: (Type, Identifier) -> String
+            showNamedParam (t, p) = (show t) ++ " " ++ (show p)
+        in "(^ " ++ (maybe "" show r) ++ " (" ++ (intercalate ", " $ map showNamedParam ps) ++ ") {\n" ++
             (showEntabbed stmts) ++
             "\n})"
 
@@ -534,6 +539,10 @@ data Statement =
     AutoreleasePool [Statement] |
     Return Expr
     deriving Eq
+
+instance Typeof Statement where
+    typeof (Statement expr) = typeof expr
+    typeof _ = VoidType
 
 -- Entabs a list of statements
 showEntabbed :: [Statement] -> String
