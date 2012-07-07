@@ -1,0 +1,3 @@
+[submodule "runtime/Configuration"]
+	path = runtime/Configuration
+	url = git://github.com/jspahrsummers/xcconfigs.git

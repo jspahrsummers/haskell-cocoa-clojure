@@ -48,11 +48,11 @@ false = do
     reserved "false"
     return $ BooleanLiteral False
 
-listLiteral = liftM List $ parens (many form)
+list = liftM List $ parens (many form)
 vectorLiteral = liftM Vector $ brackets (many form)
 
 mapLiteral =
-    let keyValuePair = liftM (\[x,y] -> (KeyValuePair x y)) $ count 2 form
+    let keyValuePair = liftM (\[x,y] -> (x,y)) $ count 2 form
     in liftM Map $ braces (many keyValuePair)
 
 setLiteral = do
@@ -64,10 +64,10 @@ form = do
 
     nil <|> true <|> false <|>
         -- reader macros
-        ignoreNext <|> quotedForm <|> deref <|> varQuote <|> anonymousFunction <|>
+        ignoreNext <|> quotedForm <|> deref <|> varQuote <|> try anonymousFunction <|>
 
         numberLiteral <|> stringLiteral <|> characterLiteral <|>
-        setLiteral <|> listLiteral <|> vectorLiteral <|> mapLiteral <|>
+        setLiteral <|> list <|> vectorLiteral <|> mapLiteral <|>
 
         identifier
 
@@ -101,7 +101,7 @@ ignoreNext = do
 
 anonymousFunction = do
     try $ char '#'
-    f <- listLiteral
+    f <- list
 
     let symbolIsArgLiteral :: String -> Bool
         symbolIsArgLiteral s = (head s) == '%'

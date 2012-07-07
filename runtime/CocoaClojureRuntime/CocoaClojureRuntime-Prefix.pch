@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'CocoaClojureRuntime' target in the 'CocoaClojureRuntime' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+#endif

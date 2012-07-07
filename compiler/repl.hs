@@ -3,10 +3,11 @@ module REPL (repl)
 
 import AST
 import Data.Char
-import LLVMCodeGen
+import ObjcCodeGen
 import Parser
 import System.Exit
 import System.IO
+import System.Process
 import Text.Parsec
 
 dropControlCharacters :: String -> (String, String)
@@ -34,10 +35,21 @@ repl' s =
             case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
                 Left err -> putStrLn $ show err
                 Right forms -> do
-                    putStrLn $ concatMap show forms
+                    objc <- codegen forms
+                    putStrLn objc
 
-                    llvm <- codegen forms
-                    putStrLn llvm
+                    (Just clangIn, _, _, clang) <- createProcess
+                        (proc "clang" ["-xobjective-c", "-Wno-unused-value", "-framework", "Foundation", "-"])
+                        { std_in = CreatePipe }
+
+                    hPutStrLn clangIn objc
+                    hClose clangIn
+                    waitForProcess clang
+
+                    (_, _, _, aout) <- createProcess $ proc "./a.out" []
+                    waitForProcess aout
+
+                    return ()
 
             putStr "=> "
             repl' left

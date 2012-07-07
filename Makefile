@@ -8,6 +8,7 @@ clean:
 	rm -f $(BINARY)
 	rm -f compiler/*.hi
 	rm -f compiler/*.o
+	cd runtime && xcodebuild -alltargets clean
 
 cocoa-clojure:
 	$(GHC) $(GHCFLAGS) -o $(BINARY) compiler/*.hs
@@ -17,3 +18,7 @@ install: cocoa-clojure
 
 repl: cocoa-clojure
 	$(BINARY)
+
+runtime:
+	cd runtime
+	xcodebuild -scheme 'CocoaClojureRuntime' build
