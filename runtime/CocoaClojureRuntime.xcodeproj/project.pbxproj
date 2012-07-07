@@ -27,6 +27,21 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D019C8A915A7B797004CBD41 /* Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Common.xcconfig; sourceTree = "<group>"; };
+		D019C8AB15A7B797004CBD41 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		D019C8AC15A7B797004CBD41 /* Profile.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Profile.xcconfig; sourceTree = "<group>"; };
+		D019C8AD15A7B797004CBD41 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		D019C8AF15A7B797004CBD41 /* Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Application.xcconfig; sourceTree = "<group>"; };
+		D019C8B015A7B797004CBD41 /* StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = StaticLibrary.xcconfig; sourceTree = "<group>"; };
+		D019C8B215A7B797004CBD41 /* iOS-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Application.xcconfig"; sourceTree = "<group>"; };
+		D019C8B315A7B797004CBD41 /* iOS-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-Base.xcconfig"; sourceTree = "<group>"; };
+		D019C8B415A7B797004CBD41 /* iOS-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "iOS-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
+		D019C8B615A7B797004CBD41 /* Mac-Application.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Application.xcconfig"; sourceTree = "<group>"; };
+		D019C8B715A7B797004CBD41 /* Mac-Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Base.xcconfig"; sourceTree = "<group>"; };
+		D019C8B815A7B797004CBD41 /* Mac-DynamicLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-DynamicLibrary.xcconfig"; sourceTree = "<group>"; };
+		D019C8B915A7B797004CBD41 /* Mac-Framework.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-Framework.xcconfig"; sourceTree = "<group>"; };
+		D019C8BA15A7B797004CBD41 /* Mac-StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Mac-StaticLibrary.xcconfig"; sourceTree = "<group>"; };
+		D019C8BB15A7B797004CBD41 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		D0D5CCC115A7B6EA007C336F /* libCocoaClojureRuntime.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCocoaClojureRuntime.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0D5CCC415A7B6EA007C336F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D0D5CCC715A7B6EA007C336F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -65,11 +80,74 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D019C8A715A7B797004CBD41 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				D019C8A815A7B797004CBD41 /* Base */,
+				D019C8B115A7B797004CBD41 /* iOS */,
+				D019C8B515A7B797004CBD41 /* Mac OS X */,
+				D019C8BB15A7B797004CBD41 /* README.md */,
+			);
+			path = Configuration;
+			sourceTree = "<group>";
+		};
+		D019C8A815A7B797004CBD41 /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				D019C8A915A7B797004CBD41 /* Common.xcconfig */,
+				D019C8AA15A7B797004CBD41 /* Configurations */,
+				D019C8AE15A7B797004CBD41 /* Targets */,
+			);
+			path = Base;
+			sourceTree = "<group>";
+		};
+		D019C8AA15A7B797004CBD41 /* Configurations */ = {
+			isa = PBXGroup;
+			children = (
+				D019C8AB15A7B797004CBD41 /* Debug.xcconfig */,
+				D019C8AC15A7B797004CBD41 /* Profile.xcconfig */,
+				D019C8AD15A7B797004CBD41 /* Release.xcconfig */,
+			);
+			path = Configurations;
+			sourceTree = "<group>";
+		};
+		D019C8AE15A7B797004CBD41 /* Targets */ = {
+			isa = PBXGroup;
+			children = (
+				D019C8AF15A7B797004CBD41 /* Application.xcconfig */,
+				D019C8B015A7B797004CBD41 /* StaticLibrary.xcconfig */,
+			);
+			path = Targets;
+			sourceTree = "<group>";
+		};
+		D019C8B115A7B797004CBD41 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				D019C8B215A7B797004CBD41 /* iOS-Application.xcconfig */,
+				D019C8B315A7B797004CBD41 /* iOS-Base.xcconfig */,
+				D019C8B415A7B797004CBD41 /* iOS-StaticLibrary.xcconfig */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		D019C8B515A7B797004CBD41 /* Mac OS X */ = {
+			isa = PBXGroup;
+			children = (
+				D019C8B615A7B797004CBD41 /* Mac-Application.xcconfig */,
+				D019C8B715A7B797004CBD41 /* Mac-Base.xcconfig */,
+				D019C8B815A7B797004CBD41 /* Mac-DynamicLibrary.xcconfig */,
+				D019C8B915A7B797004CBD41 /* Mac-Framework.xcconfig */,
+				D019C8BA15A7B797004CBD41 /* Mac-StaticLibrary.xcconfig */,
+			);
+			path = "Mac OS X";
+			sourceTree = "<group>";
+		};
 		D0D5CCB615A7B6EA007C336F = {
 			isa = PBXGroup;
 			children = (
 				D0D5CCCA15A7B6EA007C336F /* CocoaClojureRuntime */,
 				D0D5CCDC15A7B6EA007C336F /* CocoaClojureRuntimeTests */,
+				D019C8A715A7B797004CBD41 /* Configuration */,
 				D0D5CCC315A7B6EA007C336F /* Frameworks */,
 				D0D5CCC215A7B6EA007C336F /* Products */,
 			);
@@ -285,48 +363,25 @@
 /* Begin XCBuildConfiguration section */
 		D0D5CCE515A7B6EA007C336F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D019C8AB15A7B797004CBD41 /* Debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
 		D0D5CCE615A7B6EA007C336F /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D019C8AD15A7B797004CBD41 /* Release.xcconfig */;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				SDKROOT = macosx;
 			};
@@ -334,8 +389,8 @@
 		};
 		D0D5CCE815A7B6EA007C336F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D019C8BA15A7B797004CBD41 /* Mac-StaticLibrary.xcconfig */;
 			buildSettings = {
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CocoaClojureRuntime/CocoaClojureRuntime-Prefix.pch";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -343,8 +398,8 @@
 		};
 		D0D5CCE915A7B6EA007C336F /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D019C8BA15A7B797004CBD41 /* Mac-StaticLibrary.xcconfig */;
 			buildSettings = {
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CocoaClojureRuntime/CocoaClojureRuntime-Prefix.pch";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -352,9 +407,9 @@
 		};
 		D0D5CCEB15A7B6EA007C336F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D019C8B615A7B797004CBD41 /* Mac-Application.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CocoaClojureRuntime/CocoaClojureRuntime-Prefix.pch";
 				INFOPLIST_FILE = "CocoaClojureRuntimeTests/CocoaClojureRuntimeTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -364,9 +419,9 @@
 		};
 		D0D5CCEC15A7B6EA007C336F /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D019C8B615A7B797004CBD41 /* Mac-Application.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CocoaClojureRuntime/CocoaClojureRuntime-Prefix.pch";
 				INFOPLIST_FILE = "CocoaClojureRuntimeTests/CocoaClojureRuntimeTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -393,6 +448,7 @@
 				D0D5CCE915A7B6EA007C336F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D0D5CCEA15A7B6EA007C336F /* Build configuration list for PBXNativeTarget "CocoaClojureRuntimeTests" */ = {
 			isa = XCConfigurationList;
@@ -401,6 +457,7 @@
 				D0D5CCEC15A7B6EA007C336F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
