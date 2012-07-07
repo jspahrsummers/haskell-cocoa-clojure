@@ -277,28 +277,53 @@ instance Show ObjcDef where
     show (MethodDef p stmts) = (show p) ++ " {\n" ++ (showDelimList "\n" stmts) ++ "\n}"
 
 -- Any C or Objective-C expression
-data Expression =
-    VoidExpression |
-    IntLiteral Int
+data Expr =
+    VoidExpr |
+    NilLiteral |
+    NullLiteral |
+    BoolLiteral Bool |
+    IntLiteral Int |
+    VarExpr Identifier |
+    ToObjExpr Expr |
+    AssignExpr Identifier Expr
     deriving Eq
 
-instance Typeof Expression where
-    typeof VoidExpression = VoidType
+instance Typeof Expr where
+    typeof VoidExpr = VoidType
+    typeof NilLiteral = IdType
+    typeof NullLiteral = PointerType VoidType
+    typeof BoolLiteral {} = BoolType
     typeof IntLiteral {} = IntType
+    -- Can't get the type of a VarExpr unless we decide to pass more type information around
+    typeof (ToObjExpr expr) = IdType
+    typeof (AssignExpr _ expr) = typeof expr
 
-instance Show Expression where
-    show VoidExpression = "((void)0)"
+instance Show Expr where
+    show VoidExpr = "((void)0)"
+    show NilLiteral = "nil"
+    show NullLiteral = "NULL"
+    show (BoolLiteral True) = "YES"
+    show (BoolLiteral False) = "NO"
     show (IntLiteral i) = show i
+    show (VarExpr id) = show id
+    show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
+    show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
 
 -- Statements within a function, method, or block body
 data Statement =
     EmptyStatement |
-    Statement Expression |
-    Return Expression
+    Statement Expr |
+    Declaration Type Identifier Expr |
+    Return Expr
     deriving Eq
 
 instance Show Statement where
     show EmptyStatement = "\t;"
     show (Statement expr) = "\t" ++ (show expr) ++ ";"
-    show (Return VoidExpression) = "\treturn;"
+    show (Declaration t id expr) = "\t" ++ (show t) ++ " " ++ (show id) ++
+        case expr of
+        VoidExpr -> ";"
+        expr -> " = " ++ (show expr) ++ ";"
+
+    show (Return VoidExpr) = "\treturn;"
     show (Return expr) = "\treturn " ++ (show expr) ++ ";"
