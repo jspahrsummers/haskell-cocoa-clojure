@@ -358,7 +358,8 @@ data Expr =
     ToObjExpr Expr |
     AssignExpr Identifier Expr |
     MessageExpr Expr Selector [Expr] |
-    VarargMessageExpr Expr Selector [Expr] [Expr]
+    VarargMessageExpr Expr Selector [Expr] [Expr] |
+    FuncCallExpr Identifier [Expr]
     deriving Eq
 
 instance Typeof Expr where
@@ -407,6 +408,8 @@ instance Show Expr where
                 selpart ++ (show arg) ++ " " ++ (showMessageParts selparts args)
 
         in "[" ++ (show rec) ++ " " ++ (showMessageParts (selectorParts sel) args) ++ "]"
+
+    show (FuncCallExpr fn args) = (show fn) ++ "(" ++ (showDelimList ", " args) ++ ")"
 
 -- Statements within a function, method, or block body
 data Statement =
