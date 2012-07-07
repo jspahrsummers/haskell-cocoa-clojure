@@ -94,11 +94,12 @@ genForm (A.Symbol s) =
             -- Then use @selector()
             then SelectorLiteral sel
             -- Otherwise, cheat by doing it at runtime
-            else FuncCallExpr (Identifier "NSStringFromSelector") [NSStringLiteral s]
+            else CallExpr (Identifier "NSStringFromSelector") [NSStringLiteral s]
+
 
 {-
-genForm (A.RationalLiteral n) =
 genForm (A.List x) =
+genForm (A.RationalLiteral n) =
 -}
 
 -- Generates a unique variable declaration with the given type and initializer
@@ -384,7 +385,7 @@ data Expr =
     AssignExpr Identifier Expr |
     MessageExpr Expr Selector [Expr] |
     VarargMessageExpr Expr Selector [Expr] [Expr] |
-    FuncCallExpr Identifier [Expr]
+    CallExpr Identifier [Expr]
     deriving Eq
 
 instance Typeof Expr where
@@ -436,7 +437,7 @@ instance Show Expr where
 
         in "[" ++ (show rec) ++ " " ++ (showMessageParts (selectorParts sel) args) ++ "]"
 
-    show (FuncCallExpr fn args) = (show fn) ++ "(" ++ (showDelimList ", " args) ++ ")"
+    show (CallExpr id args) = (show id) ++ "(" ++ (showDelimList ", " args) ++ ")"
 
 -- Statements within a function, method, or block body
 data Statement =
