@@ -85,6 +85,26 @@ genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 -- TODO: generate code for an empty list
 --genForm (A.List [])
 
+-- TODO: special forms
+genForm (A.List ((A.Symbol sym):xs))
+    | sym == "def" = return $ VoidExpr
+    | sym == "if" = return $ VoidExpr
+    | sym == "do" = return $ VoidExpr
+    | sym == "let" = return $ VoidExpr
+    | sym == "quote" = return $ VoidExpr
+    | sym == "var" = return $ VoidExpr
+    | sym == "fn" = return $ VoidExpr
+    | sym == "loop" = return $ VoidExpr
+    | sym == "recur" = return $ VoidExpr
+    | sym == "throw" = return $ VoidExpr
+    | sym == "try" = return $ VoidExpr
+    {- TODO: these?
+    | sym == "monitor-exit" = return $ VoidExpr
+    | sym == "monitor-enter" = return $ VoidExpr
+    -}
+    | sym == "." = return $ VoidExpr
+    | sym == "set!" = return $ VoidExpr
+
 genForm (A.List forms) = do
     exprs <- mapM genForm forms
     return $ CallExpr (head exprs) (tail exprs)
