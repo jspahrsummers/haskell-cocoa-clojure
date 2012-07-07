@@ -24,18 +24,58 @@ codegenMain :: [A.Form] -> GeneratorStateT [BasicBlock]
 codegenMain forms = do
     (stmts, blocks) <- runWriterT $ genForms forms
 
-    let mainType = FunctionType IntType [IntType, PointerType (PointerType CharType)]
+    let imports = [SystemImport "Foundation/Foundation.h", SystemImport "objc/runtime.h"]
+        mainType = FunctionType IntType [IntType, PointerType (PointerType CharType)]
         mainProto = FuncProto {
             funcType = mainType,
             funcName = (Identifier "main"),
             funcParams = map Identifier ["argc", "argv"]
         }
     
-    let retStmt = Return $ IntLiteral 0
-    return $ FuncDef mainProto (stmts ++ [retStmt]) : blocks
+        retStmt = Return $ IntLiteral 0
+
+    return $ imports ++ (FuncDef mainProto (stmts ++ [retStmt]) : blocks)
 
 genForms :: [A.Form] -> BlockGeneratorT [Statement]
-genForms _ = return []
+genForms [] = return []
+genForms (form : rest) = do
+    stmts <- execWriterT $ genForm form
+    s2 <- genForms rest
+    return $ stmts ++ s2
+
+-- Emits code for a form
+-- Returns an expression representing the value of the form
+genForm :: A.Form -> StatementGeneratorT Expr
+genForm A.EmptyForm = return VoidExpr
+
+genForm (A.StringLiteral s) =
+    let expr = NSStringLiteral s
+    in genUniqueDecl (typeof expr) expr
+
+{-
+genForm (A.Symbol s) =
+genForm (A.IntegerLiteral n) =
+genForm (A.RationalLiteral n) =
+genForm (A.DecimalLiteral n) =
+genForm (A.CharacterLiteral c) =
+genForm A.NilLiteral =
+genForm (A.BooleanLiteral b) =
+genForm (A.List x) =
+genForm (A.Vector x) =
+genForm (A.Set x) =
+genForm (A.Map x) =
+-}
+
+-- Generates a unique variable declaration with the given type and initializer
+-- Returns a VarExpr to use the variable
+genUniqueDecl :: Type -> Expr -> StatementGeneratorT Expr
+genUniqueDecl t expr = do
+    id <- lift $ lift uniqueId
+
+    let var = Identifier $ "v" ++ (show id)
+    tell $ [Declaration t var expr]
+
+    return $ VarExpr var
 
 {-
     Code generation state
@@ -57,6 +97,7 @@ uniqueId = do
     return c
 
 type BlockGeneratorT = WriterT [BasicBlock] GeneratorStateT
+type StatementGeneratorT = WriterT [Statement] BlockGeneratorT
 
 {-
 	Objective-C syntax structures
@@ -283,6 +324,7 @@ data Expr =
     NullLiteral |
     BoolLiteral Bool |
     IntLiteral Int |
+    NSStringLiteral String |
     VarExpr Identifier |
     ToObjExpr Expr |
     AssignExpr Identifier Expr
@@ -294,6 +336,7 @@ instance Typeof Expr where
     typeof NullLiteral = PointerType VoidType
     typeof BoolLiteral {} = BoolType
     typeof IntLiteral {} = IntType
+    typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
     -- Can't get the type of a VarExpr unless we decide to pass more type information around
     typeof (ToObjExpr expr) = IdType
     typeof (AssignExpr _ expr) = typeof expr
@@ -305,6 +348,8 @@ instance Show Expr where
     show (BoolLiteral True) = "YES"
     show (BoolLiteral False) = "NO"
     show (IntLiteral i) = show i
+    -- TODO: escape special characters
+    show (NSStringLiteral s) = "@\"" ++ s ++ "\""
     show (VarExpr id) = show id
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
