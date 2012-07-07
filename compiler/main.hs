@@ -18,7 +18,7 @@ compile :: [FilePath] -> IO ()
 compile (x:xs) = do
     putStrLn $ "*** Compiling " ++ x
 
-    outFD <- openFile (x ++ ".ll") WriteMode
+    outFD <- openFile (x ++ ".m") WriteMode
     contents <- readFile x
 
     either printErrorAndExit (codegenToFile outFD) (parse Parser.forms x contents)
