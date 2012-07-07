@@ -1,4 +1,5 @@
 BINARY = bin/cocoa-clojure
+RUNTIME = lib/libCocoaClojureRuntime.a
 GHC = ghc
 GHCFLAGS = 
 
@@ -8,9 +9,9 @@ clean:
 	rm -f $(BINARY)
 	rm -f compiler/*.hi
 	rm -f compiler/*.o
-	cd runtime && xcodebuild -alltargets clean
+	cd runtime && xcodebuild -alltargets clean && rm -rf build
 
-cocoa-clojure:
+cocoa-clojure: runtime
 	$(GHC) $(GHCFLAGS) -o $(BINARY) compiler/*.hs
 
 install: cocoa-clojure
@@ -20,5 +21,5 @@ repl: cocoa-clojure
 	$(BINARY)
 
 runtime:
-	cd runtime
-	xcodebuild -scheme 'CocoaClojureRuntime' build
+	cd runtime && xcodebuild -scheme 'CocoaClojureRuntime' -configuration Release build BUILD_DIR=build BUILD_ROOT=build
+	cp -f runtime/build/Release/libCocoaClojureRuntime.a $(RUNTIME)
