@@ -1,4 +1,4 @@
-An attempt to compile Clojure down to LLVM IR and integrate with Cocoa/Objective-C.
+An attempt to compile Clojure down to Objective-C and integrate with Cocoa.
 
 Very experimental at the moment – don't expect much! Contributions are welcome.
 
