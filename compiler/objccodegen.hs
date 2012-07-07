@@ -470,6 +470,8 @@ data Expr =
     BlockLiteral { retType :: Maybe Type, blockParams :: [(Type, Identifier)], blockStmts :: [Statement] } |
     CompoundExpr [Statement] |
     IdentExpr Identifier |
+    AddrOfExpr Identifier |
+    DerefExpr Expr |
     ToObjExpr Expr |
     AssignExpr Identifier Expr |
     MessageExpr Expr Selector [Expr] |
@@ -502,7 +504,12 @@ instance Typeof Expr where
         in BlockType (typeof $ last stmts) pts
 
     typeof cl@(CompoundExpr stmts) = typeof $ last stmts
-    typeof (ToObjExpr expr) = IdType
+    typeof AddrOfExpr {} = PointerType VoidType
+    typeof dre@(DerefExpr expr) = case typeof expr of
+        (PointerType t) -> t
+        _ -> InferredType dre
+
+    typeof ToObjExpr {} = IdType
     typeof (AssignExpr _ expr) = typeof expr
     typeof (IfExpr _ expr _) = typeof expr
     typeof AndExpr {} = BoolType
@@ -536,6 +543,8 @@ instance Show Expr where
 
     show (CompoundExpr stmts) = "({\n" ++ (showEntabbed stmts) ++ "\n})"
     show (IdentExpr id) = show id
+    show (AddrOfExpr id) = "(&" ++ (show id) ++ ")"
+    show (DerefExpr expr) = "(*" ++ (show expr) ++ ")"
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
     show (MessageExpr rec sel args) = show $ VarargMessageExpr rec sel args []
@@ -564,7 +573,9 @@ data Statement =
     Statement Expr |
     Declaration Type Identifier Expr |
     AutoreleasePool [Statement] |
-    Return Expr
+    Return Expr |
+    Label Identifier |
+    Goto Identifier
     deriving Eq
 
 instance Typeof Statement where
@@ -595,3 +606,5 @@ instance Show Statement where
     show (AutoreleasePool stmts) = "\t@autoreleasepool {\n" ++ (showEntabbed stmts) ++ "\n\t}"
     show (Return VoidExpr) = "\treturn;"
     show (Return expr) = "\treturn " ++ (show expr) ++ ";"
+    show (Label id) = (show id) ++ ":"
+    show (Goto id) = "\tgoto " ++ (show id) ++ ";"
