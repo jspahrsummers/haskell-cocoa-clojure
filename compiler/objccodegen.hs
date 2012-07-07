@@ -4,6 +4,7 @@ module ObjcCodeGen (codegen, codegenToFile)
 import qualified AST as A
 import Control.Monad.State.Lazy
 import Control.Monad.Writer.Lazy
+import Data.Char
 import Data.List
 import System.IO
 import Util
@@ -81,8 +82,21 @@ genForm (A.Set forms) = do
 
     genUniqueDecl (InstanceType $ Identifier "NSSet") $ VarargMessageExpr rec sel [] exprs
 
-{-
 genForm (A.Symbol s) =
+    -- Symbols in Clojure and selectors in Objective-C are both kinds of interned strings
+    -- The Objective-C runtime is already set up to index selectors in a global table,
+    -- and symbols might represent selectors anyways, so let's take advantage of it
+    let sel = Selector s
+        parts = filter (not . null) $ splitOn ':' s
+    in genUniqueDecl SelectorType $
+        -- If this symbol is legal for an @selector() expression...
+        if (length parts == 1 || last s == ':' ) && (foldl (&&) True $ map isLegalIdentifier parts)
+            -- Then use @selector()
+            then SelectorLiteral sel
+            -- Otherwise, cheat by doing it at runtime
+            else FuncCallExpr (Identifier "NSStringFromSelector") [NSStringLiteral s]
+
+{-
 genForm (A.RationalLiteral n) =
 genForm (A.List x) =
 -}
@@ -138,6 +152,16 @@ newtype Identifier = Identifier String
 
 instance Show Identifier where
 	show (Identifier s) = s
+
+isLegalIdentifier :: String -> Bool
+isLegalIdentifier "" = False
+isLegalIdentifier (x:xs) =
+    let isAlphaUnderscore :: Char -> Bool
+        isAlphaUnderscore c = (isAlpha c) || (c == '_')
+
+        isAlphaNumUnderscore :: Char -> Bool
+        isAlphaNumUnderscore c = (isAlphaNum c) || (c == '_')
+    in isAlphaUnderscore x && (null $ dropWhile isAlphaNumUnderscore xs)
 
 -- Objective-C selectors
 newtype Selector = Selector String
@@ -351,6 +375,7 @@ data Expr =
     BoolLiteral Bool |
     IntLiteral Int |
     DoubleLiteral Double |
+    SelectorLiteral Selector |
     NSStringLiteral String |
     NSArrayLiteral [Expr] |
     NSDictionaryLiteral [(Expr, Expr)] |
@@ -369,6 +394,7 @@ instance Typeof Expr where
     typeof BoolLiteral {} = BoolType
     typeof IntLiteral {} = IntType
     typeof DoubleLiteral {} = DoubleType
+    typeof SelectorLiteral {} = SelectorType
     typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
     typeof NSArrayLiteral {} = InstanceType $ Identifier "NSArray"
     typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
@@ -384,6 +410,7 @@ instance Show Expr where
     show (BoolLiteral False) = "NO"
     show (IntLiteral n) = show n
     show (DoubleLiteral n) = show n
+    show (SelectorLiteral s) = show s
     -- TODO: escape special characters
     show (NSStringLiteral s) = "@\"" ++ s ++ "\""
     show (NSArrayLiteral exprs) = "@[" ++ (showDelimList ", " exprs) ++ "]"
