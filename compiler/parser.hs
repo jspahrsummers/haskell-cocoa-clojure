@@ -64,7 +64,7 @@ form = do
 
     nil <|> true <|> false <|>
         -- reader macros
-        ignoreNext <|> quotedForm <|> deref <|> varQuote <|> anonymousFunction <|>
+        ignoreNext <|> quotedForm <|> deref <|> varQuote <|> try anonymousFunction <|>
 
         numberLiteral <|> stringLiteral <|> characterLiteral <|>
         setLiteral <|> listLiteral <|> vectorLiteral <|> mapLiteral <|>
