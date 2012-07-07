@@ -105,7 +105,14 @@ genForm (A.List ((A.Symbol sym):xs))
 
         return $ last exprs
 
-    | sym == "let" = return $ VoidExpr
+    | sym == "let" = do
+        let ((A.Vector bindings):forms) = xs
+
+        decls <- genBindings bindings
+        exprs <- mapM genForm forms
+
+        return $ CompoundExpr $ decls ++ (map Statement exprs)
+
     | sym == "quote" = return $ VoidExpr
     | sym == "var" = return $ VoidExpr
     | sym == "fn" = return $ VoidExpr
@@ -126,6 +133,16 @@ genForm (A.List forms) = do
 
 -- TODO
 --genForm (A.RationalLiteral n) =
+
+-- Returns declarations which initialize local bindings
+genBindings :: [A.Form] -> StatementGeneratorT [Statement]
+genBindings [] = return []
+genBindings ((A.Symbol s):form:xs) = do
+    let id = escapedIdentifier s
+
+    expr <- genForm form
+    rest <- genBindings xs
+    return $ Declaration (typeof expr) id expr : rest
 
 -- Generates a unique variable declaration with the given type and initializer
 -- Returns a IdentExpr to use the variable
@@ -423,6 +440,7 @@ data Expr =
     NSArrayLiteral [Expr] |
     NSDictionaryLiteral [(Expr, Expr)] |
     BlockLiteral { blockType :: Type, blockParams :: [Identifier], blockStmts :: [Statement] } |
+    CompoundExpr [Statement] |
     IdentExpr Identifier |
     ToObjExpr Expr |
     AssignExpr Identifier Expr |
@@ -448,6 +466,10 @@ instance Typeof Expr where
     typeof NSArrayLiteral {} = InstanceType $ Identifier "NSArray"
     typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
     typeof BlockLiteral { blockType = t } = t
+    typeof cl@(CompoundExpr stmts) = case last stmts of
+        (Statement expr) -> typeof expr
+        _ -> InferredType cl
+
     typeof (ToObjExpr expr) = IdType
     typeof (AssignExpr _ expr) = typeof expr
     typeof (IfExpr _ expr _) = typeof expr
@@ -480,6 +502,7 @@ instance Show Expr where
             (showEntabbed stmts) ++
             "\n})"
 
+    show (CompoundExpr stmts) = "({\n" ++ (showEntabbed stmts) ++ "\n})"
     show (IdentExpr id) = show id
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
@@ -502,13 +525,6 @@ instance Show Expr where
     show (AndExpr a b) = "(" ++ (show a) ++ " && " ++ (show b) ++ ")"
     show (OrExpr a b) = "(" ++ (show a) ++ " || " ++ (show b) ++ ")"
     show (NotExpr expr) = "(!" ++ (show expr) ++ ")"
-
--- Invokes a block literal containing the given statements, emulating a compound expression
-compoundExpr :: Type -> [Statement] -> Expr
-compoundExpr t stmts =
-    -- Wrap the statements in an autorelease pool as well
-    let block = BlockLiteral (BlockType t []) [] [AutoreleasePool stmts]
-    in CallExpr block []
 
 -- Statements within a function, method, or block body
 data Statement =
