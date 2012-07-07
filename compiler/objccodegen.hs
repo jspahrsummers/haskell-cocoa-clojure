@@ -115,7 +115,32 @@ genForm (A.List ((A.Symbol sym):xs))
 
     | sym == "quote" = return $ VoidExpr
     | sym == "var" = return $ VoidExpr
-    | sym == "fn" = return $ VoidExpr
+    | sym == "fn" = do
+        -- TODO: support name? param
+        -- TODO: support overloaded invoke methods
+        let ((A.Vector params):forms) = xs
+
+        exprs <- mapM genForm forms
+
+        let lastExpr = last exprs
+            lastType = typeof lastExpr
+
+            rettype = case lastType of
+                      VoidType -> Nothing
+                      t -> Just t
+
+            retstmt = case lastType of
+                      VoidType -> Statement lastExpr
+                      t -> Return lastExpr
+
+        genUniqueInitDecl $ BlockLiteral {
+            retType = rettype,
+
+            -- TODO: support rest params
+            blockParams = map (\(A.Symbol p) -> (IdType, escapedIdentifier p)) params,
+            blockStmts = (map Statement (init exprs)) ++ [retstmt]
+        }
+
     | sym == "loop" = return $ VoidExpr
     | sym == "recur" = return $ VoidExpr
     | sym == "throw" = return $ VoidExpr
@@ -129,6 +154,8 @@ genForm (A.List ((A.Symbol sym):xs))
 
 genForm (A.List forms) = do
     exprs <- mapM genForm forms
+
+    -- TODO: map void return types to nil
     return $ CallExpr (head exprs) (tail exprs)
 
 -- TODO
@@ -551,14 +578,20 @@ showEntabbed stmts =
         entabShow stmt = "\t" ++ (show stmt)
     in intercalate "\n" $ map entabShow stmts
 
+showInitExpr :: Expr -> String
+showInitExpr VoidExpr = ""
+showInitExpr expr = " = " ++ (show expr)
+
 instance Show Statement where
     show EmptyStatement = "\t;"
     show (Statement expr) = "\t" ++ (show expr) ++ ";"
-    show (Declaration t id expr) = "\t" ++ (show t) ++ " " ++ (show id) ++
-        case expr of
-        VoidExpr -> ";"
-        expr -> " = " ++ (show expr) ++ ";"
+    show (Declaration (BlockType r pts) id expr) =
+        "\t" ++ (show r) ++ " (^" ++ (show id) ++ ")(" ++ (showDelimList ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
 
+    show (Declaration (FunctionType r pts) id expr) =
+        "\t" ++ (show r) ++ " (*" ++ (show id) ++ ")(" ++ (showDelimList ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
+
+    show (Declaration t id expr) = "\t" ++ (show t) ++ " " ++ (show id) ++ (showInitExpr expr) ++ ";"
     show (AutoreleasePool stmts) = "\t@autoreleasepool {\n" ++ (showEntabbed stmts) ++ "\n\t}"
     show (Return VoidExpr) = "\treturn;"
     show (Return expr) = "\treturn " ++ (show expr) ++ ";"
