@@ -241,7 +241,8 @@ data Type =
     -- Used interchangably for both function pointers and function prototypes
     FunctionType Type [Type] |
     BlockType Type [Type] |
-    MethodType Type [Type]
+    MethodType Type [Type] |
+    InferredType Expr
     deriving Eq
 
 instance Typeof Type where
@@ -261,6 +262,7 @@ instance Show Type where
     show (FunctionType r params) = (show r) ++ " (*)(" ++ (showDelimList ", " params) ++ ")"
     show (BlockType r params) = (show r) ++ " (^)(" ++ (showDelimList ", " params) ++ ")"
     -- MethodTypes have no universal code representation
+    show (InferredType expr) = "__typeof__(" ++ (show expr) ++ ")"
 
 -- Function prototypes
 data FuncProto = FuncProto { funcType :: Type, funcName :: Identifier, funcParams :: [Identifier] }
@@ -450,7 +452,7 @@ instance Typeof Expr where
     typeof AndExpr {} = BoolType
     typeof OrExpr {} = BoolType
     typeof NotExpr {} = BoolType
-    -- Can't get the type of other expressions unless we decide to pass more type information around
+    typeof expr = InferredType expr
 
 instance Show Expr where
     show VoidExpr = "((void)0)"
@@ -501,6 +503,7 @@ data Statement =
     Return Expr
     deriving Eq
 
+-- Entabs a list of statements
 showEntabbed :: [Statement] -> String
 showEntabbed stmts =
     let entabShow :: Statement -> String
