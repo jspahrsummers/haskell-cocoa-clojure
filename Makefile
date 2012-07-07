@@ -1,6 +1,6 @@
 BINARY = bin/cocoa-clojure
 GHC = ghc
-GHCFLAGS = -fllvm
+GHCFLAGS = 
 
 all: cocoa-clojure
 
