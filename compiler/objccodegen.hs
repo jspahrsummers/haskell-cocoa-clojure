@@ -140,6 +140,7 @@ selectorParts (Selector s) =
 data Type =
     VoidType |
     IntType |
+    DoubleType |
     CharType |
     BoolType |
     IdType |
@@ -160,6 +161,7 @@ instance Typeof Type where
 instance Show Type where
     show VoidType = "void"
     show IntType = "int"
+    show DoubleType = "double"
     show CharType = "char"
     show BoolType = "BOOL"
     show IdType = "id"
@@ -324,10 +326,12 @@ data Expr =
     NullLiteral |
     BoolLiteral Bool |
     IntLiteral Int |
+    DoubleLiteral Double |
     NSStringLiteral String |
     VarExpr Identifier |
     ToObjExpr Expr |
-    AssignExpr Identifier Expr
+    AssignExpr Identifier Expr |
+    MessageExpr Expr Selector [Expr]
     deriving Eq
 
 instance Typeof Expr where
@@ -336,10 +340,11 @@ instance Typeof Expr where
     typeof NullLiteral = PointerType VoidType
     typeof BoolLiteral {} = BoolType
     typeof IntLiteral {} = IntType
+    typeof DoubleLiteral {} = DoubleType
     typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
-    -- Can't get the type of a VarExpr unless we decide to pass more type information around
     typeof (ToObjExpr expr) = IdType
     typeof (AssignExpr _ expr) = typeof expr
+    -- Can't get the type of other expressions unless we decide to pass more type information around
 
 instance Show Expr where
     show VoidExpr = "((void)0)"
@@ -347,12 +352,18 @@ instance Show Expr where
     show NullLiteral = "NULL"
     show (BoolLiteral True) = "YES"
     show (BoolLiteral False) = "NO"
-    show (IntLiteral i) = show i
+    show (IntLiteral n) = show n
+    show (DoubleLiteral n) = show n
     -- TODO: escape special characters
     show (NSStringLiteral s) = "@\"" ++ s ++ "\""
     show (VarExpr id) = show id
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
+    show (MessageExpr rec sel args) =
+        let showMessageParts :: [String] -> [Expr] -> String
+            showMessageParts [selpart] [] = selpart
+            showMessageParts selparts args = intercalate " " $ zipWith (++) selparts $ map show args
+        in "[" ++ (show rec) ++ " " ++ (showMessageParts (selectorParts sel) args) ++ "]"
 
 -- Statements within a function, method, or block body
 data Statement =
