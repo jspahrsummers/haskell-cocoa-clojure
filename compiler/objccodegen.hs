@@ -473,7 +473,8 @@ data Expr =
     AddrOfExpr Identifier |
     DerefExpr Expr |
     ToObjExpr Expr |
-    AssignExpr Identifier Expr |
+    -- The first expression here must be a valid lvalue (e.g., IdentExpr, DerefExpr)
+    AssignExpr Expr Expr |
     MessageExpr Expr Selector [Expr] |
     VarargMessageExpr Expr Selector [Expr] [Expr] |
     CallExpr Expr [Expr] |
@@ -546,7 +547,7 @@ instance Show Expr where
     show (AddrOfExpr id) = "(&" ++ (show id) ++ ")"
     show (DerefExpr expr) = "(*" ++ (show expr) ++ ")"
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
-    show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
+    show (AssignExpr lexpr rexpr) = "(" ++ (show lexpr) ++ " = " ++ (show rexpr) ++ ")"
     show (MessageExpr rec sel args) = show $ VarargMessageExpr rec sel args []
     show (VarargMessageExpr rec sel args varargs) =
         let showMessageParts :: [String] -> [Expr] -> String
