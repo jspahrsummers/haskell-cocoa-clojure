@@ -9,18 +9,13 @@ import Data.List
 import System.IO
 import Util
 
--- TODO: this no longer needs to be in the IO monad
-codegen :: [A.Form] -> IO String
-codegen forms = do
+codegen :: [A.Form] -> String
+codegen forms =
     let st = GeneratorState { counter = 0 }
-    blocks <- evalStateT (codegenMain forms) st
-
-    return $ showDelimList "\n" (sort blocks)
+    in showDelimList "\n" $ sort $ evalState (codegenMain forms) st
 
 codegenToFile :: Handle -> [A.Form] -> IO ()
-codegenToFile fd forms = do
-    str <- codegen forms
-    hPutStrLn fd str
+codegenToFile fd forms = hPutStrLn fd $ codegen forms
 
 codegenMain :: [A.Form] -> GeneratorStateT [BasicBlock]
 codegenMain forms = do
@@ -139,8 +134,7 @@ data GeneratorState = GeneratorState {
     counter :: Integer
 }
 
--- TODO: this doesn't really need to wrap IO
-type GeneratorStateT = StateT GeneratorState IO
+type GeneratorStateT = State GeneratorState
 
 uniqueId :: GeneratorStateT Integer
 uniqueId = do
@@ -151,6 +145,7 @@ uniqueId = do
 
     return c
 
+-- TODO: these writers should probably use a structure more efficient than a list
 type BlockGeneratorT = WriterT [BasicBlock] GeneratorStateT
 type StatementGeneratorT = WriterT [Statement] BlockGeneratorT
 

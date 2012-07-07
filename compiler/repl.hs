@@ -35,7 +35,7 @@ repl' s =
             case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
                 Left err -> putStrLn $ show err
                 Right forms -> do
-                    objc <- codegen forms
+                    let objc = codegen forms
                     putStrLn objc
 
                     (Just clangIn, _, _, clang) <- createProcess
