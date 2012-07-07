@@ -80,30 +80,10 @@ genForm (A.Set forms) = do
 
     genUniqueDecl (InstanceType $ Identifier "NSSet") $ VarargMessageExpr rec sel [] exprs
 
--- TODO: this should actually emit identifiers, and only keywords shoudl become selectors
-genForm (A.Symbol s) =
-    -- Symbols in Clojure and selectors in Objective-C are both kinds of interned strings
-    -- The Objective-C runtime is already set up to index selectors in a global table,
-    -- and symbols might represent selectors anyways, so let's take advantage of it
-    let sel = Selector s
-        parts = filter (not . null) $ splitOn ':' s
-    in return $
-        -- If this symbol is legal for an @selector() expression...
-        if (length parts == 1 || last s == ':' ) && (foldl (&&) True $ map isLegalIdentifier parts)
-            -- Then use @selector()
-            then SelectorLiteral sel
-            -- Otherwise, cheat by doing it at runtime
-            else CallExpr (IdentExpr $ Identifier "NSStringFromSelector") [NSStringLiteral s]
+genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
 -- TODO: generate code for an empty list
 --genForm (A.List [])
-
--- TODO: this probably isn't the right way to do this
-genForm (A.List ((A.Symbol s):forms)) = do
-    exprs <- mapM genForm forms
-
-    -- TODO: handle symbols that aren't valid identifiers
-    return $ CallExpr (IdentExpr $ Identifier s) exprs
 
 genForm (A.List forms) = do
     exprs <- mapM genForm forms
@@ -165,15 +145,21 @@ newtype Identifier = Identifier String
 instance Show Identifier where
 	show (Identifier s) = s
 
-isLegalIdentifier :: String -> Bool
-isLegalIdentifier "" = False
-isLegalIdentifier (x:xs) =
-    let isAlphaUnderscore :: Char -> Bool
+-- Takes an arbitrary string and makes it into a valid Objective-C identifier
+escapedIdentifier :: String -> Identifier
+escapedIdentifier (x:xs) =
+    let escapedChar :: Char -> String
+        escapedChar c = "S" ++ (show $ ord c)
+
+        isAlphaUnderscore :: Char -> Bool
         isAlphaUnderscore c = (isAlpha c) || (c == '_')
 
         isAlphaNumUnderscore :: Char -> Bool
         isAlphaNumUnderscore c = (isAlphaNum c) || (c == '_')
-    in isAlphaUnderscore x && (null $ dropWhile isAlphaNumUnderscore xs)
+
+        escapedX = if isAlphaUnderscore x then [x] else escapedChar x
+        escapedXS = concatMap (\c -> if isAlphaNumUnderscore c then [c] else escapedChar c) xs
+    in Identifier $ escapedX ++ escapedXS
 
 -- Objective-C selectors
 newtype Selector = Selector String
