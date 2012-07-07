@@ -5,6 +5,8 @@ GHCFLAGS =
 
 all: cocoa-clojure
 
+.PHONY: clean cocoa-clojure install repl runtime
+
 clean:
 	rm -f $(BINARY)
 	rm -f compiler/*.hi
