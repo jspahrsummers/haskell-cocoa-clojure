@@ -99,7 +99,12 @@ genForm (A.List ((A.Symbol sym):xs))
 
         return $ IfExpr cond thenExpr elseExpr
 
-    | sym == "do" = return $ VoidExpr
+    | sym == "do" = do
+        exprs <- mapM genForm xs
+        tell $ map Statement $ init exprs
+
+        return $ last exprs
+
     | sym == "let" = return $ VoidExpr
     | sym == "quote" = return $ VoidExpr
     | sym == "var" = return $ VoidExpr
