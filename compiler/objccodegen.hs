@@ -21,7 +21,7 @@ codegenMain :: [A.Form] -> GeneratorStateT [BasicBlock]
 codegenMain forms = do
     (stmts, blocks) <- runWriterT $ genForms forms
 
-    let imports = [SystemImport "Foundation/Foundation.h", SystemImport "objc/runtime.h"]
+    let imports = [SystemImport "Foundation/Foundation.h", SystemImport "objc/runtime.h", LocalImport "CocoaClojureRuntime.h"]
         mainType = FunctionType IntType [IntType, PointerType (PointerType CharType)]
         mainProto = FuncProto {
             funcType = mainType,
@@ -50,9 +50,7 @@ genForm A.EmptyForm = return VoidExpr
 genForm (A.StringLiteral s) = return $ NSStringLiteral s
 genForm (A.BooleanLiteral b) = return $ ToObjExpr $ BoolLiteral b
 genForm (A.CharacterLiteral c) = return $ NSStringLiteral [c]
-
--- TODO: this should use something like EXTNil, so it can be put into collections
-genForm A.NilLiteral = return NilLiteral
+genForm A.NilLiteral = return $ MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
 
 -- TODO: handle numbers bigger than an int
 genForm (A.IntegerLiteral n) = return $ ToObjExpr $ IntLiteral $ fromInteger n
