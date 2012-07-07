@@ -40,9 +40,11 @@ codegenMain forms = do
 genForms :: [A.Form] -> BlockGeneratorT [Statement]
 genForms [] = return []
 genForms (form : rest) = do
-    stmts <- execWriterT $ genForm form
+    (finalExpr, stmts) <- runWriterT $ genForm form
     s2 <- genForms rest
-    return $ stmts ++ s2
+
+    -- Make sure to emit the final expression, even if the value is not used
+    return $ stmts ++ [Statement finalExpr] ++ s2
 
 -- Emits code for a form
 -- Returns an expression representing the value of the form
@@ -94,11 +96,23 @@ genForm (A.Symbol s) =
             -- Then use @selector()
             then SelectorLiteral sel
             -- Otherwise, cheat by doing it at runtime
-            else CallExpr (Identifier "NSStringFromSelector") [NSStringLiteral s]
+            else CallExpr (IdentExpr $ Identifier "NSStringFromSelector") [NSStringLiteral s]
 
+-- TODO: generate code for an empty list
+--genForm (A.List [])
+
+-- TODO: this probably isn't the right way to do this
+genForm (A.List ((A.Symbol s):forms)) = do
+    exprs <- mapM genForm forms
+
+    -- TODO: handle symbols that aren't valid identifiers
+    return $ CallExpr (IdentExpr $ Identifier s) exprs
+
+genForm (A.List forms) = do
+    exprs <- mapM genForm forms
+    return $ CallExpr (head exprs) (tail exprs)
 
 {-
-genForm (A.List x) =
 genForm (A.RationalLiteral n) =
 -}
 
@@ -385,7 +399,7 @@ data Expr =
     AssignExpr Identifier Expr |
     MessageExpr Expr Selector [Expr] |
     VarargMessageExpr Expr Selector [Expr] [Expr] |
-    CallExpr Identifier [Expr]
+    CallExpr Expr [Expr]
     deriving Eq
 
 instance Typeof Expr where
@@ -437,7 +451,7 @@ instance Show Expr where
 
         in "[" ++ (show rec) ++ " " ++ (showMessageParts (selectorParts sel) args) ++ "]"
 
-    show (CallExpr id args) = (show id) ++ "(" ++ (showDelimList ", " args) ++ ")"
+    show (CallExpr expr args) = (show expr) ++ "(" ++ (showDelimList ", " args) ++ ")"
 
 -- Statements within a function, method, or block body
 data Statement =
