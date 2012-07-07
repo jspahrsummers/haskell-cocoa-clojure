@@ -422,6 +422,7 @@ data Expr =
     NSStringLiteral String |
     NSArrayLiteral [Expr] |
     NSDictionaryLiteral [(Expr, Expr)] |
+    BlockLiteral { blockType :: Type, blockParams :: [Identifier], blockStmts :: [Statement] } |
     IdentExpr Identifier |
     ToObjExpr Expr |
     AssignExpr Identifier Expr |
@@ -446,6 +447,7 @@ instance Typeof Expr where
     typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
     typeof NSArrayLiteral {} = InstanceType $ Identifier "NSArray"
     typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
+    typeof BlockLiteral { blockType = t } = t
     typeof (ToObjExpr expr) = IdType
     typeof (AssignExpr _ expr) = typeof expr
     typeof (IfExpr _ expr _) = typeof expr
@@ -471,6 +473,13 @@ instance Show Expr where
             showPair (k, v) = (show k) ++ ": " ++ (show v)
         in "@{" ++ (intercalate ", " $ map showPair kvs) ++ "}"
 
+    show (BlockLiteral (BlockType r pts) pns stmts) = 
+        let showNamedParam :: (Identifier, Type) -> String
+            showNamedParam (p, t) = (show t) ++ " " ++ (show p)
+        in "(^ " ++ (show r) ++ " (" ++ (intercalate ", " $ map showNamedParam $ zip pns pts) ++ ") {\n" ++
+            (showEntabbed stmts) ++
+            "\n})"
+
     show (IdentExpr id) = show id
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
@@ -493,6 +502,13 @@ instance Show Expr where
     show (AndExpr a b) = "(" ++ (show a) ++ " && " ++ (show b) ++ ")"
     show (OrExpr a b) = "(" ++ (show a) ++ " || " ++ (show b) ++ ")"
     show (NotExpr expr) = "(!" ++ (show expr) ++ ")"
+
+-- Invokes a block literal containing the given statements, emulating a compound expression
+compoundExpr :: Type -> [Statement] -> Expr
+compoundExpr t stmts =
+    -- Wrap the statements in an autorelease pool as well
+    let block = BlockLiteral (BlockType t []) [] [AutoreleasePool stmts]
+    in CallExpr block []
 
 -- Statements within a function, method, or block body
 data Statement =
