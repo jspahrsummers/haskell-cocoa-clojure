@@ -34,8 +34,9 @@ codegenMain forms = do
         }
     
         retStmt = Return $ IntLiteral 0
+        mainDef = FuncDef mainProto $ [AutoreleasePool (stmts ++ [retStmt])]
 
-    return $ imports ++ (FuncDef mainProto (stmts ++ [retStmt]) : blocks)
+    return $ imports ++ (mainDef : blocks)
 
 genForms :: [A.Form] -> BlockGeneratorT [Statement]
 genForms [] = return []
@@ -457,8 +458,15 @@ data Statement =
     EmptyStatement |
     Statement Expr |
     Declaration Type Identifier Expr |
+    AutoreleasePool [Statement] |
     Return Expr
     deriving Eq
+
+showEntabbed :: [Statement] -> String
+showEntabbed stmts =
+    let entabShow :: Statement -> String
+        entabShow stmt = "\t" ++ (show stmt)
+    in intercalate "\n" $ map entabShow stmts
 
 instance Show Statement where
     show EmptyStatement = "\t;"
@@ -468,5 +476,6 @@ instance Show Statement where
         VoidExpr -> ";"
         expr -> " = " ++ (show expr) ++ ";"
 
+    show (AutoreleasePool stmts) = "\t@autoreleasepool {\n" ++ (showEntabbed stmts) ++ "\n\t}"
     show (Return VoidExpr) = "\treturn;"
     show (Return expr) = "\treturn " ++ (show expr) ++ ";"
