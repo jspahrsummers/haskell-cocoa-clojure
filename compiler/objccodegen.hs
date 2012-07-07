@@ -61,13 +61,23 @@ genForm (A.IntegerLiteral n) = genUniqueInitDecl $ ToObjExpr $ IntLiteral $ from
 -- TODO: handle BigDecimals
 genForm (A.DecimalLiteral n) = genUniqueInitDecl $ ToObjExpr $ DoubleLiteral n
 
+genForm (A.Vector forms) = do
+    exprs <- mapM genForm forms
+    genUniqueInitDecl $ NSArrayLiteral exprs
+
+genForm (A.Map kvs) = do
+    let (keys, values) = unzip kvs
+
+    keyExprs <- mapM genForm keys
+    valueExprs <- mapM genForm values
+
+    genUniqueInitDecl $ NSDictionaryLiteral $ zip keyExprs valueExprs
+
 {-
 genForm (A.Symbol s) =
 genForm (A.RationalLiteral n) =
 genForm (A.List x) =
-genForm (A.Vector x) =
 genForm (A.Set x) =
-genForm (A.Map x) =
 -}
 
 -- Generates a unique variable declaration with the given type and initializer
@@ -335,6 +345,8 @@ data Expr =
     IntLiteral Int |
     DoubleLiteral Double |
     NSStringLiteral String |
+    NSArrayLiteral [Expr] |
+    NSDictionaryLiteral [(Expr, Expr)] |
     VarExpr Identifier |
     ToObjExpr Expr |
     AssignExpr Identifier Expr |
@@ -349,6 +361,8 @@ instance Typeof Expr where
     typeof IntLiteral {} = IntType
     typeof DoubleLiteral {} = DoubleType
     typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
+    typeof NSArrayLiteral {} = InstanceType $ Identifier "NSArray"
+    typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
     typeof (ToObjExpr expr) = IdType
     typeof (AssignExpr _ expr) = typeof expr
     -- Can't get the type of other expressions unless we decide to pass more type information around
@@ -363,6 +377,12 @@ instance Show Expr where
     show (DoubleLiteral n) = show n
     -- TODO: escape special characters
     show (NSStringLiteral s) = "@\"" ++ s ++ "\""
+    show (NSArrayLiteral exprs) = "@[" ++ (showDelimList ", " exprs) ++ "]"
+    show (NSDictionaryLiteral kvs) =
+        let showPair :: (Expr, Expr) -> String
+            showPair (k, v) = (show k) ++ ": " ++ (show v)
+        in "@{" ++ (intercalate ", " $ map showPair kvs) ++ "}"
+
     show (VarExpr id) = show id
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"

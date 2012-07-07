@@ -1,16 +1,12 @@
 module AST (
         Form(..),
-        KeyValuePair(..),
         foldForm
     ) where
 
+import Data.List
 import Data.Monoid
 import Data.Ratio
 import Util
-
-data KeyValuePair = KeyValuePair Form Form
-instance Show KeyValuePair where
-    show (KeyValuePair k v) = (show k) ++ " " ++ (show v)
 
 data Form =
     EmptyForm |
@@ -27,7 +23,7 @@ data Form =
     BooleanLiteral Bool |
     List [Form] |
     Vector [Form] |
-    Map [KeyValuePair] |
+    Map [(Form, Form)] |
     Set [Form]
 
 instance Show Form where
@@ -48,7 +44,10 @@ instance Show Form where
     show (List x) = "(" ++ (showDelimList " " x) ++ ")"
     show (Vector x) = "[" ++ (showDelimList " " x) ++ "]"
     show (Set x) = "#{" ++ (showDelimList " " x) ++ "}"
-    show (Map x) = "{" ++ (showDelimList ", " x) ++ "}"
+    show (Map kvs) =
+        let showPair :: (Form, Form) -> String
+            showPair (k, v) = (show k) ++ " " ++ (show v)
+        in "{" ++ (intercalate ", " $ map showPair kvs) ++ "}"
 
 -- Folds over all forms in an AST
 foldForm :: Monoid m => (Form -> m) -> Form -> m
@@ -56,7 +55,7 @@ foldForm f form@(List forms) = f form `mappend` foldFormList f forms
 foldForm f form@(Vector forms) = f form `mappend` foldFormList f forms
 foldForm f form@(Set forms) = f form `mappend` foldFormList f forms
 foldForm f form@(Map kvps) =
-    let kvf (KeyValuePair k v) = foldForm f k `mappend` foldForm f v
+    let kvf (k, v) = foldForm f k `mappend` foldForm f v
     in f form `mappend` mconcat (fmap kvf kvps)
 
 foldForm f form = f form
