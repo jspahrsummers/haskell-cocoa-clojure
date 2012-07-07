@@ -64,7 +64,7 @@ form = do
 
     nil <|> true <|> false <|>
         -- reader macros
-        ignoreNext <|> quotedForm <|> deref <|> varQuote <|> try anonymousFunction <|>
+        ignoreNext <|> quotedForm <|> deref <|> varQuote <|> keyword <|> try anonymousFunction <|>
 
         numberLiteral <|> stringLiteral <|> characterLiteral <|>
         setLiteral <|> list <|> vectorLiteral <|> mapLiteral <|>
@@ -124,6 +124,11 @@ anonymousFunction = do
 
     -- #(...) => (fn [args] (...))
     return $ List [Symbol "fn", Vector args, f]
+
+keyword = do
+    try $ char ':'
+    id <- identifier
+    return $ List [Symbol "keyword", id]
 
 quotedForm = formMacro "'" "quote"
 deref = formMacro "@" "deref"
