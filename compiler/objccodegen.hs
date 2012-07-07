@@ -73,15 +73,22 @@ genForm (A.Map kvs) = do
 
     genUniqueInitDecl $ NSDictionaryLiteral $ zip keyExprs valueExprs
 
+genForm (A.Set forms) = do
+    exprs <- mapM genForm forms
+
+    let rec = IdentExpr $ Identifier "NSSet"
+        sel = Selector "setWithObjects:"
+
+    genUniqueDecl (InstanceType $ Identifier "NSSet") $ VarargMessageExpr rec sel [] exprs
+
 {-
 genForm (A.Symbol s) =
 genForm (A.RationalLiteral n) =
 genForm (A.List x) =
-genForm (A.Set x) =
 -}
 
 -- Generates a unique variable declaration with the given type and initializer
--- Returns a VarExpr to use the variable
+-- Returns a IdentExpr to use the variable
 genUniqueDecl :: Type -> Expr -> StatementGeneratorT Expr
 genUniqueDecl t expr = do
     id <- lift $ lift uniqueId
@@ -89,7 +96,7 @@ genUniqueDecl t expr = do
     let var = Identifier $ "v" ++ (show id)
     tell $ [Declaration t var expr]
 
-    return $ VarExpr var
+    return $ IdentExpr var
 
 genUniqueInitDecl :: Expr -> StatementGeneratorT Expr
 genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
@@ -347,10 +354,11 @@ data Expr =
     NSStringLiteral String |
     NSArrayLiteral [Expr] |
     NSDictionaryLiteral [(Expr, Expr)] |
-    VarExpr Identifier |
+    IdentExpr Identifier |
     ToObjExpr Expr |
     AssignExpr Identifier Expr |
-    MessageExpr Expr Selector [Expr]
+    MessageExpr Expr Selector [Expr] |
+    VarargMessageExpr Expr Selector [Expr] [Expr]
     deriving Eq
 
 instance Typeof Expr where
@@ -383,13 +391,21 @@ instance Show Expr where
             showPair (k, v) = (show k) ++ ": " ++ (show v)
         in "@{" ++ (intercalate ", " $ map showPair kvs) ++ "}"
 
-    show (VarExpr id) = show id
+    show (IdentExpr id) = show id
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr id expr) = "(" ++ (show id) ++ " = " ++ (show expr) ++ ")"
-    show (MessageExpr rec sel args) =
+    show (MessageExpr rec sel args) = show $ VarargMessageExpr rec sel args []
+    show (VarargMessageExpr rec sel args varargs) =
         let showMessageParts :: [String] -> [Expr] -> String
-            showMessageParts [selpart] [] = selpart
-            showMessageParts selparts args = intercalate " " $ zipWith (++) selparts $ map show args
+            showMessageParts [] [] = ""
+            showMessageParts [selpart] [] = 
+                if null varargs
+                    then selpart
+                    else selpart ++ (showDelimList ", " varargs) ++ ", nil"
+
+            showMessageParts (selpart:selparts) (arg:args) =
+                selpart ++ (show arg) ++ " " ++ (showMessageParts selparts args)
+
         in "[" ++ (show rec) ++ " " ++ (showMessageParts (selectorParts sel) args) ++ "]"
 
 -- Statements within a function, method, or block body
