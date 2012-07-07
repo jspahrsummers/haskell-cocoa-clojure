@@ -50,7 +50,7 @@ genForm A.EmptyForm = return VoidExpr
 genForm (A.StringLiteral s) = return $ NSStringLiteral s
 genForm (A.BooleanLiteral b) = return $ ToObjExpr $ BoolLiteral b
 genForm (A.CharacterLiteral c) = return $ NSStringLiteral [c]
-genForm A.NilLiteral = return $ MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
+genForm A.NilLiteral = return extNilExpr
 
 -- TODO: handle numbers bigger than an int
 genForm (A.IntegerLiteral n) = return $ ToObjExpr $ IntLiteral $ fromInteger n
@@ -86,7 +86,19 @@ genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 -- TODO: special forms
 genForm (A.List ((A.Symbol sym):xs))
     | sym == "def" = return $ VoidExpr
-    | sym == "if" = return $ VoidExpr
+    | sym == "if" = do
+        exprs <- mapM genForm xs
+
+        let (test:thenExpr:xs') = exprs
+            elseExpr = if null xs'
+                then extNilExpr
+                else head xs'
+
+            -- !([[EXTNil null] isEqual:test] || [@NO isEqual:test])
+            cond = NotExpr $ OrExpr (isEqualExpr extNilExpr test) $ isEqualExpr (ToObjExpr $ BoolLiteral False) test
+
+        return $ IfExpr cond thenExpr elseExpr
+
     | sym == "do" = return $ VoidExpr
     | sym == "let" = return $ VoidExpr
     | sym == "quote" = return $ VoidExpr
@@ -123,6 +135,14 @@ genUniqueDecl t expr = do
 
 genUniqueInitDecl :: Expr -> StatementGeneratorT Expr
 genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
+
+-- An expression for the EXTNil singleton
+extNilExpr :: Expr
+extNilExpr = MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
+
+-- Invokes -isEqual: against the first expression, with the second expression as the argument
+isEqualExpr :: Expr -> Expr -> Expr
+isEqualExpr a b = MessageExpr a (Selector "isEqual:") [b]
 
 {-
     Code generation state
@@ -400,7 +420,12 @@ data Expr =
     AssignExpr Identifier Expr |
     MessageExpr Expr Selector [Expr] |
     VarargMessageExpr Expr Selector [Expr] [Expr] |
-    CallExpr Expr [Expr]
+    CallExpr Expr [Expr] |
+    -- Ternary operator
+    IfExpr Expr Expr Expr |
+    AndExpr Expr Expr |
+    OrExpr Expr Expr |
+    NotExpr Expr
     deriving Eq
 
 instance Typeof Expr where
@@ -416,6 +441,10 @@ instance Typeof Expr where
     typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
     typeof (ToObjExpr expr) = IdType
     typeof (AssignExpr _ expr) = typeof expr
+    typeof (IfExpr _ expr _) = typeof expr
+    typeof AndExpr {} = BoolType
+    typeof OrExpr {} = BoolType
+    typeof NotExpr {} = BoolType
     -- Can't get the type of other expressions unless we decide to pass more type information around
 
 instance Show Expr where
@@ -453,6 +482,10 @@ instance Show Expr where
         in "[" ++ (show rec) ++ " " ++ (showMessageParts (selectorParts sel) args) ++ "]"
 
     show (CallExpr expr args) = (show expr) ++ "(" ++ (showDelimList ", " args) ++ ")"
+    show (IfExpr cond trueExpr falseExpr) = "(" ++ (show cond) ++ " ? " ++ (show trueExpr) ++ " : " ++ (show falseExpr) ++ ")"
+    show (AndExpr a b) = "(" ++ (show a) ++ " && " ++ (show b) ++ ")"
+    show (OrExpr a b) = "(" ++ (show a) ++ " || " ++ (show b) ++ ")"
+    show (NotExpr expr) = "(!" ++ (show expr) ++ ")"
 
 -- Statements within a function, method, or block body
 data Statement =
