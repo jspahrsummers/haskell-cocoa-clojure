@@ -3,3 +3,4 @@
 *.ll
 *.S
 build
+a.out

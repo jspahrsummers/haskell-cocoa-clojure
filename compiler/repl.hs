@@ -48,6 +48,9 @@ repl' s =
                     hClose clangIn
                     waitForProcess clang
 
+                    (_, _, _, aout) <- createProcess $ proc "./a.out" []
+                    waitForProcess aout
+
                     return ()
 
             putStr "=> "
