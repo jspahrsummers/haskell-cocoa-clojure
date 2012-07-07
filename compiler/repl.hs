@@ -3,7 +3,7 @@ module REPL (repl)
 
 import AST
 import Data.Char
-import LLVMCodeGen
+import ObjcCodeGen
 import Parser
 import System.Exit
 import System.IO

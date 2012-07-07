@@ -1,7 +1,7 @@
 module Main (main)
     where
 
-import LLVMCodeGen
+import ObjcCodeGen
 import Parser
 import REPL
 import System.Environment
