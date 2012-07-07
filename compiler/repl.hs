@@ -35,8 +35,6 @@ repl' s =
             case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
                 Left err -> putStrLn $ show err
                 Right forms -> do
-                    putStrLn $ concatMap show forms
-
                     objc <- codegen forms
                     putStrLn objc
 
