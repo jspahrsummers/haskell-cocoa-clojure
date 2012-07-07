@@ -10,12 +10,17 @@
 		D019C8BF15A7B88D004CBD41 /* CLJList.h in Headers */ = {isa = PBXBuildFile; fileRef = D019C8BD15A7B88D004CBD41 /* CLJList.h */; };
 		D019C8C015A7B88D004CBD41 /* CLJList.m in Sources */ = {isa = PBXBuildFile; fileRef = D019C8BE15A7B88D004CBD41 /* CLJList.m */; };
 		D019C8C215A7B89F004CBD41 /* CocoaClojureRuntime.h in Headers */ = {isa = PBXBuildFile; fileRef = D019C8C115A7B89F004CBD41 /* CocoaClojureRuntime.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D06F1A5B15A8EA59003F09DB /* EXTNil.h in Headers */ = {isa = PBXBuildFile; fileRef = D06F1A5915A8EA59003F09DB /* EXTNil.h */; };
+		D06F1A5C15A8EA59003F09DB /* EXTNil.m in Sources */ = {isa = PBXBuildFile; fileRef = D06F1A5A15A8EA59003F09DB /* EXTNil.m */; };
+		D06F1A6015A8EA64003F09DB /* EXTNilTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D06F1A5F15A8EA64003F09DB /* EXTNilTest.m */; };
+		D06F1A6315A8EA8A003F09DB /* EXTRuntimeExtensionsTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D06F1A6215A8EA8A003F09DB /* EXTRuntimeExtensionsTest.m */; };
+		D06F1A6615A8EA97003F09DB /* EXTRuntimeExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D06F1A6415A8EA97003F09DB /* EXTRuntimeExtensions.h */; };
+		D06F1A6715A8EA97003F09DB /* EXTRuntimeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = D06F1A6515A8EA97003F09DB /* EXTRuntimeExtensions.m */; };
 		D0D5CCC515A7B6EA007C336F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC415A7B6EA007C336F /* Cocoa.framework */; };
 		D0D5CCD715A7B6EA007C336F /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCD615A7B6EA007C336F /* SenTestingKit.framework */; };
 		D0D5CCD815A7B6EA007C336F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC415A7B6EA007C336F /* Cocoa.framework */; };
 		D0D5CCDB15A7B6EA007C336F /* libCocoaClojureRuntime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC115A7B6EA007C336F /* libCocoaClojureRuntime.a */; };
 		D0D5CCE115A7B6EA007C336F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0D5CCDF15A7B6EA007C336F /* InfoPlist.strings */; };
-		D0D5CCE415A7B6EA007C336F /* CocoaClojureRuntimeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D0D5CCE315A7B6EA007C336F /* CocoaClojureRuntimeTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +52,14 @@
 		D019C8BD15A7B88D004CBD41 /* CLJList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CLJList.h; sourceTree = "<group>"; };
 		D019C8BE15A7B88D004CBD41 /* CLJList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CLJList.m; sourceTree = "<group>"; };
 		D019C8C115A7B89F004CBD41 /* CocoaClojureRuntime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaClojureRuntime.h; sourceTree = "<group>"; };
+		D06F1A5915A8EA59003F09DB /* EXTNil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTNil.h; sourceTree = "<group>"; };
+		D06F1A5A15A8EA59003F09DB /* EXTNil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTNil.m; sourceTree = "<group>"; };
+		D06F1A5E15A8EA64003F09DB /* EXTNilTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTNilTest.h; sourceTree = "<group>"; };
+		D06F1A5F15A8EA64003F09DB /* EXTNilTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTNilTest.m; sourceTree = "<group>"; };
+		D06F1A6115A8EA8A003F09DB /* EXTRuntimeExtensionsTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTRuntimeExtensionsTest.h; sourceTree = "<group>"; };
+		D06F1A6215A8EA8A003F09DB /* EXTRuntimeExtensionsTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTRuntimeExtensionsTest.m; sourceTree = "<group>"; };
+		D06F1A6415A8EA97003F09DB /* EXTRuntimeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXTRuntimeExtensions.h; sourceTree = "<group>"; };
+		D06F1A6515A8EA97003F09DB /* EXTRuntimeExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXTRuntimeExtensions.m; sourceTree = "<group>"; };
 		D0D5CCC115A7B6EA007C336F /* libCocoaClojureRuntime.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCocoaClojureRuntime.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0D5CCC415A7B6EA007C336F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D0D5CCC715A7B6EA007C336F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -57,8 +70,6 @@
 		D0D5CCD615A7B6EA007C336F /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		D0D5CCDE15A7B6EA007C336F /* CocoaClojureRuntimeTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CocoaClojureRuntimeTests-Info.plist"; sourceTree = "<group>"; };
 		D0D5CCE015A7B6EA007C336F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		D0D5CCE215A7B6EA007C336F /* CocoaClojureRuntimeTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CocoaClojureRuntimeTests.h; sourceTree = "<group>"; };
-		D0D5CCE315A7B6EA007C336F /* CocoaClojureRuntimeTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CocoaClojureRuntimeTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,20 +156,26 @@
 			path = "Mac OS X";
 			sourceTree = "<group>";
 		};
-		D019C8C315A7B8A3004CBD41 /* Classes */ = {
+		D019C8C315A7B8A3004CBD41 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
 				D019C8BD15A7B88D004CBD41 /* CLJList.h */,
 				D019C8BE15A7B88D004CBD41 /* CLJList.m */,
+				D06F1A5915A8EA59003F09DB /* EXTNil.h */,
+				D06F1A5A15A8EA59003F09DB /* EXTNil.m */,
+				D06F1A6415A8EA97003F09DB /* EXTRuntimeExtensions.h */,
+				D06F1A6515A8EA97003F09DB /* EXTRuntimeExtensions.m */,
 			);
-			name = Classes;
+			name = Modules;
 			sourceTree = "<group>";
 		};
 		D019C8C415A7B8B2004CBD41 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				D0D5CCE215A7B6EA007C336F /* CocoaClojureRuntimeTests.h */,
-				D0D5CCE315A7B6EA007C336F /* CocoaClojureRuntimeTests.m */,
+				D06F1A5E15A8EA64003F09DB /* EXTNilTest.h */,
+				D06F1A5F15A8EA64003F09DB /* EXTNilTest.m */,
+				D06F1A6115A8EA8A003F09DB /* EXTRuntimeExtensionsTest.h */,
+				D06F1A6215A8EA8A003F09DB /* EXTRuntimeExtensionsTest.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -207,7 +224,7 @@
 			isa = PBXGroup;
 			children = (
 				D019C8C115A7B89F004CBD41 /* CocoaClojureRuntime.h */,
-				D019C8C315A7B8A3004CBD41 /* Classes */,
+				D019C8C315A7B8A3004CBD41 /* Modules */,
 				D0D5CCCB15A7B6EA007C336F /* Supporting Files */,
 			);
 			path = CocoaClojureRuntime;
@@ -248,6 +265,8 @@
 			files = (
 				D019C8BF15A7B88D004CBD41 /* CLJList.h in Headers */,
 				D019C8C215A7B89F004CBD41 /* CocoaClojureRuntime.h in Headers */,
+				D06F1A5B15A8EA59003F09DB /* EXTNil.h in Headers */,
+				D06F1A6615A8EA97003F09DB /* EXTRuntimeExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,6 +369,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D019C8C015A7B88D004CBD41 /* CLJList.m in Sources */,
+				D06F1A5C15A8EA59003F09DB /* EXTNil.m in Sources */,
+				D06F1A6715A8EA97003F09DB /* EXTRuntimeExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,7 +378,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0D5CCE415A7B6EA007C336F /* CocoaClojureRuntimeTests.m in Sources */,
+				D06F1A6015A8EA64003F09DB /* EXTNilTest.m in Sources */,
+				D06F1A6315A8EA8A003F09DB /* EXTRuntimeExtensionsTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
