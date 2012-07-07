@@ -39,7 +39,7 @@ repl' s =
                     putStrLn objc
 
                     (Just clangIn, _, _, clang) <- createProcess
-                        (proc "clang" ["-xobjective-c", "-Wno-unused-value", "-framework", "Foundation", "-"])
+                        (proc "clang" ["-L", "lib", "-lCocoaClojureRuntime", "-Iruntime/CocoaClojureRuntime", "-xobjective-c", "-Wno-unused-value", "-framework", "Foundation", "-"])
                         { std_in = CreatePipe }
 
                     hPutStrLn clangIn objc
