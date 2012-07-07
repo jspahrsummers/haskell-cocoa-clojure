@@ -50,19 +50,18 @@ genForms (form : rest) = do
 -- Returns an expression representing the value of the form
 genForm :: A.Form -> StatementGeneratorT Expr
 genForm A.EmptyForm = return VoidExpr
-
-genForm (A.StringLiteral s) = genUniqueInitDecl $ NSStringLiteral s
-genForm (A.BooleanLiteral b) = genUniqueInitDecl $ ToObjExpr $ BoolLiteral b
-genForm (A.CharacterLiteral c) = genUniqueInitDecl $ NSStringLiteral [c]
+genForm (A.StringLiteral s) = return $ NSStringLiteral s
+genForm (A.BooleanLiteral b) = return $ ToObjExpr $ BoolLiteral b
+genForm (A.CharacterLiteral c) = return $ NSStringLiteral [c]
 
 -- TODO: this should use something like EXTNil, so it can be put into collections
-genForm A.NilLiteral = genUniqueInitDecl NilLiteral
+genForm A.NilLiteral = return NilLiteral
 
 -- TODO: handle numbers bigger than an int
-genForm (A.IntegerLiteral n) = genUniqueInitDecl $ ToObjExpr $ IntLiteral $ fromInteger n
+genForm (A.IntegerLiteral n) = return $ ToObjExpr $ IntLiteral $ fromInteger n
 
 -- TODO: handle BigDecimals
-genForm (A.DecimalLiteral n) = genUniqueInitDecl $ ToObjExpr $ DoubleLiteral n
+genForm (A.DecimalLiteral n) = return $ ToObjExpr $ DoubleLiteral n
 
 genForm (A.Vector forms) = do
     exprs <- mapM genForm forms
@@ -90,7 +89,7 @@ genForm (A.Symbol s) =
     -- and symbols might represent selectors anyways, so let's take advantage of it
     let sel = Selector s
         parts = filter (not . null) $ splitOn ':' s
-    in genUniqueDecl SelectorType $
+    in return $
         -- If this symbol is legal for an @selector() expression...
         if (length parts == 1 || last s == ':' ) && (foldl (&&) True $ map isLegalIdentifier parts)
             -- Then use @selector()
