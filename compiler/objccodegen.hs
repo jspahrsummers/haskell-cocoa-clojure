@@ -9,6 +9,7 @@ import Data.List
 import System.IO
 import Util
 
+-- TODO: this no longer needs to be in the IO monad
 codegen :: [A.Form] -> IO String
 codegen forms = do
     let st = GeneratorState { counter = 0 }
@@ -84,6 +85,7 @@ genForm (A.Set forms) = do
 
     genUniqueDecl (InstanceType $ Identifier "NSSet") $ VarargMessageExpr rec sel [] exprs
 
+-- TODO: this should actually emit identifiers, and only keywords shoudl become selectors
 genForm (A.Symbol s) =
     -- Symbols in Clojure and selectors in Objective-C are both kinds of interned strings
     -- The Objective-C runtime is already set up to index selectors in a global table,
@@ -112,9 +114,8 @@ genForm (A.List forms) = do
     exprs <- mapM genForm forms
     return $ CallExpr (head exprs) (tail exprs)
 
-{-
-genForm (A.RationalLiteral n) =
--}
+-- TODO
+--genForm (A.RationalLiteral n) =
 
 -- Generates a unique variable declaration with the given type and initializer
 -- Returns a IdentExpr to use the variable
@@ -138,6 +139,7 @@ data GeneratorState = GeneratorState {
     counter :: Integer
 }
 
+-- TODO: this doesn't really need to wrap IO
 type GeneratorStateT = StateT GeneratorState IO
 
 uniqueId :: GeneratorStateT Integer
@@ -153,7 +155,7 @@ type BlockGeneratorT = WriterT [BasicBlock] GeneratorStateT
 type StatementGeneratorT = WriterT [Statement] BlockGeneratorT
 
 {-
-	Objective-C syntax structures
+    Objective-C syntax structures
 -}
 
 -- Represents any value for which a C/Objective-C type can be obtained
