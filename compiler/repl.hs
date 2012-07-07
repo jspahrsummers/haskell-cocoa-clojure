@@ -7,6 +7,7 @@ import ObjcCodeGen
 import Parser
 import System.Exit
 import System.IO
+import System.Process
 import Text.Parsec
 
 dropControlCharacters :: String -> (String, String)
@@ -36,8 +37,18 @@ repl' s =
                 Right forms -> do
                     putStrLn $ concatMap show forms
 
-                    llvm <- codegen forms
-                    putStrLn llvm
+                    objc <- codegen forms
+                    putStrLn objc
+
+                    (Just clangIn, _, _, clang) <- createProcess
+                        (proc "clang" ["-xobjective-c", "-Wno-unused-value", "-framework", "Foundation", "-"])
+                        { std_in = CreatePipe }
+
+                    hPutStrLn clangIn objc
+                    hClose clangIn
+                    waitForProcess clang
+
+                    return ()
 
             putStr "=> "
             repl' left
