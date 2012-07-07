@@ -48,18 +48,22 @@ genForms (form : rest) = do
 genForm :: A.Form -> StatementGeneratorT Expr
 genForm A.EmptyForm = return VoidExpr
 
-genForm (A.StringLiteral s) =
-    let expr = NSStringLiteral s
-    in genUniqueDecl (typeof expr) expr
+genForm (A.StringLiteral s) = genUniqueInitDecl $ NSStringLiteral s
+genForm (A.BooleanLiteral b) = genUniqueInitDecl $ ToObjExpr $ BoolLiteral b
+genForm (A.CharacterLiteral c) = genUniqueInitDecl $ NSStringLiteral [c]
+
+-- TODO: this should use something like EXTNil, so it can be put into collections
+genForm A.NilLiteral = genUniqueInitDecl NilLiteral
+
+-- TODO: handle numbers bigger than an int
+genForm (A.IntegerLiteral n) = genUniqueInitDecl $ ToObjExpr $ IntLiteral $ fromInteger n
+
+-- TODO: handle BigDecimals
+genForm (A.DecimalLiteral n) = genUniqueInitDecl $ ToObjExpr $ DoubleLiteral n
 
 {-
 genForm (A.Symbol s) =
-genForm (A.IntegerLiteral n) =
 genForm (A.RationalLiteral n) =
-genForm (A.DecimalLiteral n) =
-genForm (A.CharacterLiteral c) =
-genForm A.NilLiteral =
-genForm (A.BooleanLiteral b) =
 genForm (A.List x) =
 genForm (A.Vector x) =
 genForm (A.Set x) =
@@ -76,6 +80,9 @@ genUniqueDecl t expr = do
     tell $ [Declaration t var expr]
 
     return $ VarExpr var
+
+genUniqueInitDecl :: Expr -> StatementGeneratorT Expr
+genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
 
 {-
     Code generation state
