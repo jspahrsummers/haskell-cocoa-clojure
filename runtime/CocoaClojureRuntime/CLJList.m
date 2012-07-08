@@ -12,6 +12,24 @@
 
 #pragma mark - Initialization
 
++ (id)listWithValues:(id)value, ... NS_REQUIRES_NIL_TERMINATION {
+	NSMutableArray *values = [NSMutableArray array];
+	va_list args;
+    va_start(args, value);
+    for(id currentValue = value; currentValue != nil; currentValue = va_arg(args, id)) {
+		[values addObject:currentValue];
+    }
+    va_end(args);
+	
+	CLJList *last = nil;
+	for(id currentValue in [values reverseObjectEnumerator]) {
+		CLJList *list = [[self alloc] initWithValue:currentValue next:last];
+		last = list;
+	}
+	
+	return last;
+}
+
 - (id)initWithValue:(id)value next:(CLJList *)next {
     self = [super init];
     if (!self)

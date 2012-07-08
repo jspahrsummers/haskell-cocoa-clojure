@@ -24,6 +24,11 @@
 @property (nonatomic, copy, readonly) CLJList *next;
 
 /**
+ * Creates a list with the given values.
+ */
++ (id)listWithValues:(id)value, ... NS_REQUIRES_NIL_TERMINATION;
+
+/**
  * Creates and returns a new list node.
  */
 - (id)initWithValue:(id)value next:(CLJList *)next;
