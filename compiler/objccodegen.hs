@@ -80,8 +80,8 @@ genForm (A.Set forms) = do
 
 genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
--- TODO: generate code for an empty list
---genForm (A.List [])
+genForm (A.List []) = do
+    genUniqueDecl (InstanceType $ Identifier "CLJList") $ listExpr NilLiteral NilLiteral
 
 genForm (A.List ((A.Symbol sym):xs))
     | sym == "def" = do
@@ -263,6 +263,14 @@ genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
 -- An expression for the EXTNil singleton
 extNilExpr :: Expr
 extNilExpr = MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
+
+listExpr :: Expr -> Expr -> Expr
+listExpr val n = do
+    let ident = IdentExpr $ Identifier "CLJList"
+        initSel = Selector "initWithValue:next:"
+        allocSel = Selector "alloc"
+
+    MessageExpr (MessageExpr ident allocSel []) initSel [val, n]
 
 -- Invokes -isEqual: against the first expression, with the second expression as the argument
 isEqualExpr :: Expr -> Expr -> Expr
@@ -545,6 +553,7 @@ data Expr =
     NSStringLiteral String |
     NSArrayLiteral [Expr] |
     NSDictionaryLiteral [(Expr, Expr)] |
+    CLJListLiteral [Expr] |
     -- retType is required only if it cannot be inferred from Return statements
     BlockLiteral { retType :: Maybe Type, blockParams :: [(Type, Identifier)], blockStmts :: [Statement] } |
     CompoundExpr [Statement] |
@@ -574,6 +583,7 @@ instance Typeof Expr where
     typeof SelectorLiteral {} = SelectorType
     typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
     typeof NSArrayLiteral {} = InstanceType $ Identifier "NSArray"
+    typeof CLJListLiteral {} = InstanceType $ Identifier "CLJList"
     typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
     typeof (BlockLiteral (Just t) ps _) =
         let pts = fst $ unzip ps
