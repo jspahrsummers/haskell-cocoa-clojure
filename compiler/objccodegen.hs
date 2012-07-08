@@ -132,7 +132,8 @@ genForm (A.List ((A.Symbol sym):xs))
         return $ CompoundExpr $ decls ++ (map Statement exprs)
 
     | sym == "quote" = do
-        genUniqueDecl (InstanceType $ Identifier "CLJList") (head $ map genQuoted xs)
+        let quotedList = head $ map genQuoted xs
+        genUniqueDecl (InstanceType $ Identifier "CLJList") quotedList
 
     -- TODO
     | sym == "var" = return $ VoidExpr
