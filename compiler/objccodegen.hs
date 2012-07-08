@@ -316,9 +316,7 @@ extNilExpr = MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
 
 -- Create a list with the given expressions.
 listExpr :: [Expr] -> Expr
-listExpr xs = do
-    let ident = IdentExpr $ Identifier "CLJList"
-    MessageExpr ident (Selector "listWithValues:") $ xs ++ [NilLiteral]
+listExpr xs = MessageExpr (IdentExpr $ Identifier "CLJList") (Selector "listWithValues:") $ xs ++ [NilLiteral]
 
 -- Given a string representing a decimal number, returns an expression to construct an NSDecimalNumber from it
 nsDecimalNumberExpr :: String -> Expr
