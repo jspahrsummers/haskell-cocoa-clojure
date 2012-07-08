@@ -131,8 +131,8 @@ genForm (A.List ((A.Symbol sym):xs))
 
         return $ CompoundExpr $ decls ++ (map Statement exprs)
 
-    -- TODO
-    | sym == "quote" = return $ VoidExpr
+    | sym == "quote" = do
+        return $ CLJListLiteral $ map NSStringLiteral $ map show xs
 
     -- TODO
     | sym == "var" = return $ VoidExpr
@@ -621,7 +621,7 @@ instance Show Expr where
     -- TODO: escape special characters
     show (NSStringLiteral s) = "@\"" ++ s ++ "\""
     show (NSArrayLiteral exprs) = "@[" ++ (showDelimList ", " exprs) ++ "]"
-    show (CLJListLiteral exprs) = "[CLJList listWithValues:" ++ (showDelimList ", " exprs) ++ "]"
+    show (CLJListLiteral exprs) = "[CLJList listWithValues:" ++ (showDelimList ", " exprs) ++ ", nil]"
     show (NSDictionaryLiteral kvs) =
         let showPair :: (Expr, Expr) -> String
             showPair (k, v) = (show k) ++ ": " ++ (show v)
