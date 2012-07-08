@@ -1,6 +1,6 @@
 module AST (
         Form(..),
-        foldForm
+        foldMapForm
     ) where
 
 import Data.List
@@ -49,16 +49,16 @@ instance Show Form where
             showPair (k, v) = (show k) ++ " " ++ (show v)
         in "{" ++ (intercalate ", " $ map showPair kvs) ++ "}"
 
--- Folds over all forms in an AST
-foldForm :: Monoid m => (Form -> m) -> Form -> m
-foldForm f form@(List forms) = f form `mappend` foldFormList f forms
-foldForm f form@(Vector forms) = f form `mappend` foldFormList f forms
-foldForm f form@(Set forms) = f form `mappend` foldFormList f forms
-foldForm f form@(Map kvps) =
-    let kvf (k, v) = foldForm f k `mappend` foldForm f v
+-- Folds and concats over all forms in an AST
+foldMapForm :: Monoid m => (Form -> m) -> Form -> m
+foldMapForm f form@(List forms) = f form `mappend` foldMapFormList f forms
+foldMapForm f form@(Vector forms) = f form `mappend` foldMapFormList f forms
+foldMapForm f form@(Set forms) = f form `mappend` foldMapFormList f forms
+foldMapForm f form@(Map kvps) =
+    let kvf (k, v) = foldMapForm f k `mappend` foldMapForm f v
     in f form `mappend` mconcat (fmap kvf kvps)
 
-foldForm f form = f form
+foldMapForm f form = f form
 
-foldFormList :: Monoid m => (Form -> m) -> [Form] -> m
-foldFormList f forms = mconcat (fmap (foldForm f) forms)
+foldMapFormList :: Monoid m => (Form -> m) -> [Form] -> m
+foldMapFormList f forms = mconcat (fmap (foldMapForm f) forms)

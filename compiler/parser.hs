@@ -120,7 +120,7 @@ anonymousFunction = do
         sortArgs (Symbol a) (Symbol b) =
            compare (read (tail a) :: Int) (read (tail b) :: Int)
 
-    let args = sortBy sortArgs $ foldForm collectArgLiterals f
+    let args = sortBy sortArgs $ foldMapForm collectArgLiterals f
 
     -- #(...) => (fn [args] (...))
     return $ List [Symbol "fn", Vector args, f]
