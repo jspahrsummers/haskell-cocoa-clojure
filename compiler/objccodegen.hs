@@ -86,8 +86,8 @@ genForm (A.Set forms) = do
 
 genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
-genForm (A.List []) = do
-    genUniqueDecl (InstanceType $ Identifier "CLJList") $ listExpr NilLiteral NilLiteral
+genForm (A.List []) =
+    genUniqueDecl (InstanceType $ Identifier "CLJList") $ listExpr []
 
 genForm (A.List ((A.Symbol sym):xs))
     | sym == "def" = do
