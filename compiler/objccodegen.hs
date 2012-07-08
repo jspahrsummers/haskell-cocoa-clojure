@@ -83,7 +83,6 @@ genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 -- TODO: generate code for an empty list
 --genForm (A.List [])
 
--- TODO: special forms
 genForm (A.List ((A.Symbol sym):xs))
     | sym == "def" = do
         let ((A.Symbol var):forms) = xs
@@ -132,8 +131,12 @@ genForm (A.List ((A.Symbol sym):xs))
 
         return $ CompoundExpr $ decls ++ (map Statement exprs)
 
+    -- TODO
     | sym == "quote" = return $ VoidExpr
+
+    -- TODO
     | sym == "var" = return $ VoidExpr
+
     | sym == "fn" = do
         -- TODO: support name? param
         -- TODO: support overloaded invoke methods
@@ -194,12 +197,17 @@ genForm (A.List ((A.Symbol sym):xs))
         -- TODO: handle fn recursion points
         return $ CompoundExpr $ updateStmts ++ [Goto $ Identifier "_loop", Statement NilLiteral]
         
+    -- TODO
     | sym == "throw" = return $ VoidExpr
+
+    -- TODO
     | sym == "try" = return $ VoidExpr
+
     {- TODO: these?
     | sym == "monitor-exit" = return $ VoidExpr
     | sym == "monitor-enter" = return $ VoidExpr
     -}
+
     | sym == "." = do
         let (objForm:selForm:argForms) = xs
 
@@ -214,6 +222,7 @@ genForm (A.List ((A.Symbol sym):xs))
                -- TODO: emit code to invoke a variable selector (using NSInvocation)
                return $ VoidExpr
 
+    -- TODO
     | sym == "set!" = return $ VoidExpr
 
 genForm (A.List forms) = do
@@ -223,7 +232,7 @@ genForm (A.List forms) = do
     return $ CallExpr (head exprs) (tail exprs)
 
 -- TODO
---genForm (A.RationalLiteral n) =
+genForm (A.RationalLiteral n) = return $ VoidExpr
 
 -- Returns declarations which initialize local bindings
 genBindings :: [A.Form] -> StatementGeneratorT [Statement]
