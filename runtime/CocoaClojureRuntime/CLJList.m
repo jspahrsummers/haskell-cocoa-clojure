@@ -71,4 +71,19 @@
     return [self.next isEqual:list.next];
 }
 
+- (NSString *)description {
+	NSMutableString *valuesString = [NSMutableString stringWithString:@"("];
+	
+	CLJList *next = self;
+	while(next.value != nil) {
+		[valuesString appendFormat:@"%@", next.value];
+		next = next.next;
+		if(next != nil) [valuesString appendString:@", "];
+	}
+	
+	[valuesString appendString:@")"];
+	
+	return valuesString;
+}
+
 @end
