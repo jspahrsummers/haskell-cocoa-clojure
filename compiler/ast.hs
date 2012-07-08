@@ -20,9 +20,10 @@ data Form =
     NilLiteral |
     BooleanLiteral Bool |
     List [Form] |
-    Vector [Form] |
-    Map [(Form, Form)] |
-    Set [Form]
+    VectorLiteral [Form] |
+    MapLiteral [(Form, Form)] |
+    SetLiteral [Form]
+    deriving (Eq, Ord)
 
 instance Show Form where
     show EmptyForm = ""
@@ -42,9 +43,9 @@ instance Show Form where
     show (BooleanLiteral True) = "true"
     show (BooleanLiteral False) = "false"
     show (List x) = "(" ++ showDelimList " " x ++ ")"
-    show (Vector x) = "[" ++ showDelimList " " x ++ "]"
-    show (Set x) = "#{" ++ showDelimList " " x ++ "}"
-    show (Map kvs) =
+    show (VectorLiteral x) = "[" ++ showDelimList " " x ++ "]"
+    show (SetLiteral x) = "#{" ++ showDelimList " " x ++ "}"
+    show (MapLiteral kvs) =
         let showPair :: (Form, Form) -> String
             showPair (k, v) = show k ++ " " ++ show v
         in "{" ++ intercalate ", " (showPair <$> kvs) ++ "}"
@@ -57,9 +58,9 @@ unionMap f l = Set.unions $ map f l
 collectSymbols :: Form -> Set.Set String
 collectSymbols (Symbol s) = Set.singleton s
 collectSymbols (List forms) = unionMap collectSymbols forms
-collectSymbols (Vector forms) = unionMap collectSymbols forms
-collectSymbols (Set forms) = unionMap collectSymbols forms
-collectSymbols (Map kvps) =
+collectSymbols (VectorLiteral forms) = unionMap collectSymbols forms
+collectSymbols (SetLiteral forms) = unionMap collectSymbols forms
+collectSymbols (MapLiteral kvps) =
     let (keys, values) = unzip kvps
     in (unionMap collectSymbols keys) `Set.union` (unionMap collectSymbols values)
 
@@ -69,10 +70,10 @@ collectSymbols _ = Set.empty
 mapSymbols :: (Form -> Form) -> Form -> Form
 mapSymbols f form@(Symbol _) = f form
 mapSymbols f (List forms) = List $ map (mapSymbols f) forms
-mapSymbols f (Vector forms) = Vector $ map (mapSymbols f) forms
-mapSymbols f (Set forms) = Set $ map (mapSymbols f) forms
-mapSymbols f (Map kvps) =
+mapSymbols f (VectorLiteral forms) = VectorLiteral $ map (mapSymbols f) forms
+mapSymbols f (SetLiteral forms) = SetLiteral $ map (mapSymbols f) forms
+mapSymbols f (MapLiteral kvps) =
     let (keys, values) = unzip kvps
-    in Map $ zip (map (mapSymbols f) keys) (map (mapSymbols f) values)
+    in MapLiteral $ zip (map (mapSymbols f) keys) (map (mapSymbols f) values)
 
 mapSymbols f form = form

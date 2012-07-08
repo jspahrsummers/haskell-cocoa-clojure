@@ -58,15 +58,15 @@ true = BooleanLiteral True <$ reserved "true"
 false = BooleanLiteral False <$ reserved "false"
 
 list = List <$> parens (many form)
-vectorLiteral = Vector <$> brackets (many form)
+vectorLiteral = VectorLiteral <$> brackets (many form)
 
 mapLiteral =
     let keyValuePair = (\[x,y] -> (x,y)) <$> count 2 form
-    in Map <$> braces (many keyValuePair)
+    in MapLiteral <$> braces (many keyValuePair)
 
 setLiteral = do
     try $ char '#'
-    Set <$> braces (many form)
+    SetLiteral <$> braces (many form)
 
 form = do
     whiteSpace
@@ -129,7 +129,7 @@ anonymousFunction = do
         renamedArgs = map renameArg $ sortBy sortArgs args
 
     -- #(...) => (fn [args] (...))
-    return $ List [Symbol "fn", Vector $ map Symbol renamedArgs, mapSymbols renameForm forms]
+    return $ List [Symbol "fn", VectorLiteral $ map Symbol renamedArgs, mapSymbols renameForm forms]
 
 keyword = do
     try $ char ':'

@@ -64,11 +64,11 @@ genForm (A.DecimalLiteral n) = case maybeDouble n of
             dec = nsDecimalNumberExpr $ show $ denominator n
         in return $ MessageExpr num (Selector "decimalNumberByDividingBy:") [dec]
 
-genForm (A.Vector forms) = do
+genForm (A.VectorLiteral forms) = do
     exprs <- mapM genForm forms
     genUniqueInitDecl $ NSArrayLiteral exprs
 
-genForm (A.Map kvs) = do
+genForm (A.MapLiteral kvs) = do
     let (keys, values) = unzip kvs
 
     keyExprs <- mapM genForm keys
@@ -76,7 +76,7 @@ genForm (A.Map kvs) = do
 
     genUniqueInitDecl $ NSDictionaryLiteral $ zip keyExprs valueExprs
 
-genForm (A.Set forms) = do
+genForm (A.SetLiteral forms) = do
     exprs <- mapM genForm forms
 
     let rec = IdentExpr $ Identifier "NSSet"
@@ -130,7 +130,7 @@ genForm (A.List ((A.Symbol sym):xs))
         return $ last exprs
 
     | sym == "let" = do
-        let ((A.Vector bindings):forms) = xs
+        let ((A.VectorLiteral bindings):forms) = xs
 
         decls <- genBindings bindings
         exprs <- mapM genForm forms
@@ -148,7 +148,7 @@ genForm (A.List ((A.Symbol sym):xs))
     | sym == "fn" = do
         -- TODO: support name? param
         -- TODO: support overloaded invoke methods
-        let ((A.Vector params):forms) = xs
+        let ((A.VectorLiteral params):forms) = xs
 
         exprs <- mapM genForm forms
 
@@ -175,7 +175,7 @@ genForm (A.List ((A.Symbol sym):xs))
         }
 
     | sym == "loop" = do
-        let ((A.Vector bindings):forms) = xs
+        let ((A.VectorLiteral bindings):forms) = xs
 
         decls <- genBindings bindings
         exprs <- mapM genForm forms
@@ -259,13 +259,13 @@ genQuoted A.NilLiteral = extNilExpr
 genQuoted (A.BooleanLiteral b) = ToObjExpr $ BoolLiteral b
 
 -- TODO
-genQuoted (A.Vector c) = VoidExpr
+genQuoted (A.VectorLiteral c) = VoidExpr
 
 -- TODO
-genQuoted (A.Map c) = VoidExpr
+genQuoted (A.MapLiteral c) = VoidExpr
 
 -- TODO
-genQuoted (A.Set c) = VoidExpr
+genQuoted (A.SetLiteral c) = VoidExpr
 
 -- Returns declarations which initialize local bindings
 genBindings :: [A.Form] -> StatementGeneratorT [Statement]
