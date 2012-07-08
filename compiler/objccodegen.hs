@@ -6,6 +6,7 @@ import Control.Monad.State.Lazy
 import Control.Monad.Writer.Lazy
 import Data.Char
 import Data.List
+import Data.Ratio
 import System.IO
 import Util
 
@@ -55,8 +56,13 @@ genForm A.NilLiteral = return extNilExpr
 -- TODO: handle numbers bigger than an int
 genForm (A.IntegerLiteral n) = return $ ToObjExpr $ IntLiteral $ fromInteger n
 
--- TODO: handle BigDecimals
-genForm (A.DecimalLiteral n) = return $ ToObjExpr $ DoubleLiteral n
+genForm (A.DecimalLiteral n) = case maybeDouble n of
+    (Just dbl) -> return $ ToObjExpr $ DoubleLiteral dbl
+    Nothing ->
+        -- TODO: this isn't really arbitrary precision -- we need something closer to Clojure ratios
+        let num = nsDecimalNumberExpr $ show $ numerator n
+            dec = nsDecimalNumberExpr $ show $ denominator n
+        in return $ MessageExpr num (Selector "decimalNumberByDividingBy:") [dec]
 
 genForm (A.Vector forms) = do
     exprs <- mapM genForm forms
@@ -227,9 +233,6 @@ genForm (A.List forms) = do
     -- TODO: map void return types to nil
     return $ CallExpr (head exprs) (tail exprs)
 
--- TODO
-genForm (A.RationalLiteral n) = return $ VoidExpr
-
 -- Returns declarations which initialize local bindings
 genBindings :: [A.Form] -> StatementGeneratorT [Statement]
 genBindings [] = return []
@@ -276,6 +279,10 @@ genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
 -- An expression for the EXTNil singleton
 extNilExpr :: Expr
 extNilExpr = MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
+
+-- Given a string representing a decimal number, returns an expression to construct an NSDecimalNumber from it
+nsDecimalNumberExpr :: String -> Expr
+nsDecimalNumberExpr str = MessageExpr (IdentExpr $ Identifier "NSDecimalNumber") (Selector "decimalNumberWithString:") [NSStringLiteral str]
 
 -- Invokes -isEqual: against the first expression, with the second expression as the argument
 isEqualExpr :: Expr -> Expr -> Expr
