@@ -21,8 +21,8 @@ dropControlCharacters s
     where
         x = head s
 
-repl' :: String -> IO ()
-repl' s =
+repl' :: String -> [Form] -> IO ()
+repl' s formsSoFar =
     let (now, left) = dropControlCharacters s
 
         fixupBackspaces :: String -> Char -> String
@@ -31,28 +31,34 @@ repl' s =
 
     in if last now == '\EOT'
         then putStrLn "\nQuit"
-        else do
-            case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
-                Left err -> putStrLn $ show err
-                Right forms -> do
-                    let objc = codegen forms
-                    putStrLn objc
+        else case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
+             Left err -> do
+                 putStrLn $ show err
+                 putStr "\n=> "
+                 repl' left formsSoFar
 
-                    (Just clangIn, _, _, clang) <- createProcess
-                        (proc "clang" ["-L", "lib", "-lCocoaClojureRuntime", "-Iruntime/CocoaClojureRuntime", "-xobjective-c", "-Wno-unused-value", "-framework", "Foundation", "-"])
-                        { std_in = CreatePipe }
+             Right forms -> do
+                 let newForms = formsSoFar ++ forms
+                     objc = codegen newForms
 
-                    hPutStrLn clangIn objc
-                    hClose clangIn
-                    waitForProcess clang
+                 putStrLn objc
 
-                    (_, _, _, aout) <- createProcess $ proc "./a.out" []
-                    waitForProcess aout
+                 (Just clangIn, _, _, clang) <- createProcess
+                     (proc "clang" ["-L", "lib", "-lCocoaClojureRuntime", "-Iruntime/CocoaClojureRuntime", "-xobjective-c", "-Wno-unused-value", "-framework", "Foundation", "-"])
+                     { std_in = CreatePipe }
 
-                    return ()
+                 hPutStrLn clangIn objc
+                 hClose clangIn
+                 clangCode <- waitForProcess clang
 
-            putStr "=> "
-            repl' left
+                 (_, _, _, aout) <- createProcess $ proc "./a.out" []
+                 progCode <- waitForProcess aout
+
+                 putStr "\n=> "
+
+                 if (clangCode == ExitSuccess) && (progCode == ExitSuccess)
+                    then repl' left newForms
+                    else repl' left formsSoFar
 
 repl :: IO ()
 repl = do
@@ -62,4 +68,4 @@ repl = do
     putStr "=> "
 
     s <- getContents
-    repl' s
+    repl' s []
