@@ -34,6 +34,12 @@ codegenMain forms = do
 
     return $ imports ++ (mainDef : blocks)
 
+genQuoted :: A.Form -> String
+genQuoted A.EmptyForm = ""
+genQuoted (A.StringLiteral s) = show s
+genQuoted (A.IntegerLiteral i) = show i
+genQuoted (A.List x) = showDelimList ", " x
+
 genForms :: [A.Form] -> BlockGeneratorT [Statement]
 genForms [] = return []
 genForms (form : rest) = do
@@ -132,7 +138,7 @@ genForm (A.List ((A.Symbol sym):xs))
         return $ CompoundExpr $ decls ++ (map Statement exprs)
 
     | sym == "quote" = do
-        return $ CLJListLiteral $ map NSStringLiteral $ map show xs
+        return $ CLJListLiteral $ map NSStringLiteral $ map genQuoted xs
 
     -- TODO
     | sym == "var" = return $ VoidExpr
