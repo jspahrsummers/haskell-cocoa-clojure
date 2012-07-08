@@ -200,7 +200,12 @@ genForm (A.List ((A.Symbol sym):xs))
     | sym == "monitor-exit" = return $ VoidExpr
     | sym == "monitor-enter" = return $ VoidExpr
     -}
-    | sym == "." = return $ VoidExpr
+    | sym == "." = do
+        exprs <- mapM genForm xs
+        let obj = head $ tail exprs
+        let sel = show $ head xs
+        return $ MessageExpr obj (Selector $ sel) (tail $ tail $ exprs)
+
     | sym == "set!" = return $ VoidExpr
 
 genForm (A.List forms) = do
