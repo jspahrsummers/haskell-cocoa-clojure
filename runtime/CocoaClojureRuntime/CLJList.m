@@ -75,6 +75,8 @@
 	NSMutableString *valuesString = [NSMutableString stringWithString:@"("];
 	
 	CLJList *next = self;
+	// Compare against value to handle the case of the empty list where self
+	// would have a nil value.
 	while(next.value != nil) {
 		[valuesString appendFormat:@"%@", next.value];
 		next = next.next;
