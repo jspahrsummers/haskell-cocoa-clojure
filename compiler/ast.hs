@@ -68,11 +68,11 @@ collectSymbols _ = Set.empty
 -- Maps over all Symbols within a form, allowing them to be renamed or replaced
 mapSymbols :: (Form -> Form) -> Form -> Form
 mapSymbols f form@(Symbol _) = f form
-mapSymbols f (List forms) = List $ map f forms
-mapSymbols f (Vector forms) = Vector $ map f forms
-mapSymbols f (Set forms) = Set $ map f forms
+mapSymbols f (List forms) = List $ map (mapSymbols f) forms
+mapSymbols f (Vector forms) = Vector $ map (mapSymbols f) forms
+mapSymbols f (Set forms) = Set $ map (mapSymbols f) forms
 mapSymbols f (Map kvps) =
     let (keys, values) = unzip kvps
-    in Map $ zip (map f keys) (map f values)
+    in Map $ zip (map (mapSymbols f) keys) (map (mapSymbols f) values)
 
 mapSymbols f form = form
