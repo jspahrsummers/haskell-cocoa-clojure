@@ -201,12 +201,18 @@ genForm (A.List ((A.Symbol sym):xs))
     | sym == "monitor-enter" = return $ VoidExpr
     -}
     | sym == "." = do
-        let (objForm:(A.Symbol sel):argForms) = xs
+        let (objForm:selForm:argForms) = xs
 
         obj <- genForm objForm
         args <- mapM genForm argForms
-        
-        return $ MessageExpr obj (Selector sel) args
+
+        case selForm of
+            -- TODO: this won't handle bindings that contain SEL values
+            (A.Symbol s) -> return $ MessageExpr obj (Selector s) args
+            _ -> do
+               sel <- genForm selForm
+               -- TODO: emit code to invoke a variable selector (using NSInvocation)
+               return $ VoidExpr
 
     | sym == "set!" = return $ VoidExpr
 
