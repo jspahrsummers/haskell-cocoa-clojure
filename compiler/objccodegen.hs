@@ -201,10 +201,12 @@ genForm (A.List ((A.Symbol sym):xs))
     | sym == "monitor-enter" = return $ VoidExpr
     -}
     | sym == "." = do
-        exprs <- mapM genForm xs
-        let obj = head $ tail exprs
-            sel = show $ head xs
-        return $ MessageExpr obj (Selector $ sel) (tail $ tail $ exprs)
+        let (objForm:(A.Symbol sel):argForms) = xs
+
+        obj <- genForm objForm
+        args <- mapM genForm argForms
+        
+        return $ MessageExpr obj (Selector sel) args
 
     | sym == "set!" = return $ VoidExpr
 
