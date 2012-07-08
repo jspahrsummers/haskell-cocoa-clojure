@@ -86,8 +86,8 @@ genForm (A.Set forms) = do
 
 genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
--- TODO: generate code for an empty list
---genForm (A.List [])
+genForm (A.List []) =
+    genUniqueDecl (InstanceType $ Identifier "CLJList") $ listExpr []
 
 genForm (A.List ((A.Symbol sym):xs))
     | sym == "def" = do
@@ -137,8 +137,10 @@ genForm (A.List ((A.Symbol sym):xs))
 
         return $ CompoundExpr $ decls ++ (map Statement exprs)
 
-    -- TODO
-    | sym == "quote" = return $ VoidExpr
+    | sym == "quote" =
+        -- We only need head since quote only quotes and returns the first list.
+        let quotedForm = genQuoted $ head xs 
+        in genUniqueDecl (InstanceType $ Identifier "CLJList") quotedForm
 
     -- TODO
     | sym == "var" = return $ VoidExpr
@@ -233,6 +235,38 @@ genForm (A.List forms) = do
     -- TODO: map void return types to nil
     return $ CallExpr (head exprs) (tail exprs)
 
+-- Generates a quoted expression from a form.
+-- TODO: a lot of these are really similar to genForm, can we leverage that?
+genQuoted :: A.Form -> Expr
+genQuoted A.EmptyForm = VoidExpr
+genQuoted (A.StringLiteral s) = NSStringLiteral $ show s
+genQuoted (A.IntegerLiteral i) = ToObjExpr $ IntLiteral $ fromInteger i
+
+-- TODO: this almost certainly isn't right
+genQuoted (A.Symbol s) = NSStringLiteral $ show $ escapedIdentifier s
+genQuoted (A.List xs) = listExpr $ map genQuoted xs
+
+-- TODO
+genQuoted (A.DecimalLiteral d) = VoidExpr
+
+-- TODO
+genQuoted (A.CharacterLiteral c) = NSStringLiteral [c]
+
+-- TODO
+genQuoted A.NilLiteral = extNilExpr
+
+-- TODO
+genQuoted (A.BooleanLiteral b) = ToObjExpr $ BoolLiteral b
+
+-- TODO
+genQuoted (A.Vector c) = VoidExpr
+
+-- TODO
+genQuoted (A.Map c) = VoidExpr
+
+-- TODO
+genQuoted (A.Set c) = VoidExpr
+
 -- Returns declarations which initialize local bindings
 genBindings :: [A.Form] -> StatementGeneratorT [Statement]
 genBindings [] = return []
@@ -279,6 +313,10 @@ genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
 -- An expression for the EXTNil singleton
 extNilExpr :: Expr
 extNilExpr = MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
+
+-- Create a list with the given expressions.
+listExpr :: [Expr] -> Expr
+listExpr xs = MessageExpr (IdentExpr $ Identifier "CLJList") (Selector "listWithValues:") $ xs ++ [NilLiteral]
 
 -- Given a string representing a decimal number, returns an expression to construct an NSDecimalNumber from it
 nsDecimalNumberExpr :: String -> Expr
