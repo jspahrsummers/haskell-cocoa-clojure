@@ -1,0 +1,13 @@
+//
+//  CocoaClojureRuntimeTests-Prefix.pch
+//  CocoaClojureRuntime
+//
+//  Created by Justin Spahr-Summers on 2012-07-08.
+//  Released into the public domain.
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+    #import "Specta.h"
+    #import "Expecta.h"
+#endif

@@ -1,3 +1,9 @@
 [submodule "runtime/Configuration"]
 	path = runtime/Configuration
 	url = git://github.com/jspahrsummers/xcconfigs.git
+[submodule "runtime/specta"]
+	path = runtime/specta
+	url = git://github.com/petejkim/specta.git
+[submodule "runtime/expecta"]
+	path = runtime/expecta
+	url = git://github.com/petejkim/expecta.git

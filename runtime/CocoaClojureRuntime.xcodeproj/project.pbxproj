@@ -21,6 +21,8 @@
 		D0D5CCD815A7B6EA007C336F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC415A7B6EA007C336F /* Cocoa.framework */; };
 		D0D5CCDB15A7B6EA007C336F /* libCocoaClojureRuntime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0D5CCC115A7B6EA007C336F /* libCocoaClojureRuntime.a */; };
 		D0D5CCE115A7B6EA007C336F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0D5CCDF15A7B6EA007C336F /* InfoPlist.strings */; };
+		D0E28DB315AA403A001CAB96 /* libExpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0E28D9515AA4027001CAB96 /* libExpecta.a */; };
+		D0E28DB415AA403A001CAB96 /* libSpecta.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0E28DA815AA402A001CAB96 /* libSpecta.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +32,76 @@
 			proxyType = 1;
 			remoteGlobalIDString = D0D5CCC015A7B6EA007C336F;
 			remoteInfo = CocoaClojureRuntime;
+		};
+		D0E28D9415AA4027001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9ACDF0C13B2DD520010F4D7;
+			remoteInfo = Expecta;
+		};
+		D0E28D9615AA4027001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E93067CE13B2E6D100EA26FF;
+			remoteInfo = "Expecta-iOS";
+		};
+		D0E28D9815AA4027001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9ACDF1D13B2DD520010F4D7;
+			remoteInfo = ExpectaTests;
+		};
+		D0E28D9A15AA4027001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E93067DA13B2E6D100EA26FF;
+			remoteInfo = "Expecta-iOSTests";
+		};
+		D0E28DA715AA402A001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9D96A2614B6B8AB007D9521;
+			remoteInfo = Specta;
+		};
+		D0E28DA915AA402A001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9B777A414BA294B00D8DC76;
+			remoteInfo = "Specta-iOS";
+		};
+		D0E28DAB15AA402A001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9D96A3A14B6B8AB007D9521;
+			remoteInfo = SpectaTests;
+		};
+		D0E28DAD15AA402A001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9B777B314BA294C00D8DC76;
+			remoteInfo = "Specta-iOSTests";
+		};
+		D0E28DAF15AA4034001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9ACDF0B13B2DD520010F4D7;
+			remoteInfo = Expecta;
+		};
+		D0E28DB115AA4034001CAB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9D96A2514B6B8AB007D9521;
+			remoteInfo = Specta;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -70,6 +142,9 @@
 		D0D5CCD615A7B6EA007C336F /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		D0D5CCDE15A7B6EA007C336F /* CocoaClojureRuntimeTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CocoaClojureRuntimeTests-Info.plist"; sourceTree = "<group>"; };
 		D0D5CCE015A7B6EA007C336F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Expecta.xcodeproj; path = expecta/Expecta.xcodeproj; sourceTree = "<group>"; };
+		D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Specta.xcodeproj; path = specta/Specta.xcodeproj; sourceTree = "<group>"; };
+		D0E28DB515AA4079001CAB96 /* CocoaClojureRuntimeTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CocoaClojureRuntimeTests-Prefix.pch"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +160,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0E28DB315AA403A001CAB96 /* libExpecta.a in Frameworks */,
+				D0E28DB415AA403A001CAB96 /* libSpecta.a in Frameworks */,
 				D0D5CCD715A7B6EA007C336F /* SenTestingKit.framework in Frameworks */,
 				D0D5CCD815A7B6EA007C336F /* Cocoa.framework in Frameworks */,
 				D0D5CCDB15A7B6EA007C336F /* libCocoaClojureRuntime.a in Frameworks */,
@@ -203,6 +280,8 @@
 		D0D5CCC315A7B6EA007C336F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */,
+				D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */,
 				D0D5CCC415A7B6EA007C336F /* Cocoa.framework */,
 				D0D5CCD615A7B6EA007C336F /* SenTestingKit.framework */,
 				D0D5CCC615A7B6EA007C336F /* Other Frameworks */,
@@ -251,9 +330,32 @@
 			isa = PBXGroup;
 			children = (
 				D0D5CCDE15A7B6EA007C336F /* CocoaClojureRuntimeTests-Info.plist */,
+				D0E28DB515AA4079001CAB96 /* CocoaClojureRuntimeTests-Prefix.pch */,
 				D0D5CCDF15A7B6EA007C336F /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D0E28D8B15AA4027001CAB96 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D0E28D9515AA4027001CAB96 /* libExpecta.a */,
+				D0E28D9715AA4027001CAB96 /* libExpecta-iOS.a */,
+				D0E28D9915AA4027001CAB96 /* ExpectaTests.octest */,
+				D0E28D9B15AA4027001CAB96 /* Expecta-iOSTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D0E28D9E15AA402A001CAB96 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D0E28DA815AA402A001CAB96 /* libSpecta.a */,
+				D0E28DAA15AA402A001CAB96 /* libSpecta-iOS.a */,
+				D0E28DAC15AA402A001CAB96 /* SpectaTests.octest */,
+				D0E28DAE15AA402A001CAB96 /* Specta-iOSTests.octest */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -302,6 +404,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				D0E28DB015AA4034001CAB96 /* PBXTargetDependency */,
+				D0E28DB215AA4034001CAB96 /* PBXTargetDependency */,
 				D0D5CCDA15A7B6EA007C336F /* PBXTargetDependency */,
 			);
 			name = CocoaClojureRuntimeTests;
@@ -328,6 +432,16 @@
 			mainGroup = D0D5CCB615A7B6EA007C336F;
 			productRefGroup = D0D5CCC215A7B6EA007C336F /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = D0E28D8B15AA4027001CAB96 /* Products */;
+					ProjectRef = D0E28D8A15AA4027001CAB96 /* Expecta.xcodeproj */;
+				},
+				{
+					ProductGroup = D0E28D9E15AA402A001CAB96 /* Products */;
+					ProjectRef = D0E28D9D15AA402A001CAB96 /* Specta.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				D0D5CCC015A7B6EA007C336F /* CocoaClojureRuntime */,
@@ -335,6 +449,65 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		D0E28D9515AA4027001CAB96 /* libExpecta.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExpecta.a;
+			remoteRef = D0E28D9415AA4027001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0E28D9715AA4027001CAB96 /* libExpecta-iOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExpecta-iOS.a";
+			remoteRef = D0E28D9615AA4027001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0E28D9915AA4027001CAB96 /* ExpectaTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = ExpectaTests.octest;
+			remoteRef = D0E28D9815AA4027001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0E28D9B15AA4027001CAB96 /* Expecta-iOSTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Expecta-iOSTests.octest";
+			remoteRef = D0E28D9A15AA4027001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0E28DA815AA402A001CAB96 /* libSpecta.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSpecta.a;
+			remoteRef = D0E28DA715AA402A001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0E28DAA15AA402A001CAB96 /* libSpecta-iOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libSpecta-iOS.a";
+			remoteRef = D0E28DA915AA402A001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0E28DAC15AA402A001CAB96 /* SpectaTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SpectaTests.octest;
+			remoteRef = D0E28DAB15AA402A001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D0E28DAE15AA402A001CAB96 /* Specta-iOSTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Specta-iOSTests.octest";
+			remoteRef = D0E28DAD15AA402A001CAB96 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		D0D5CCD215A7B6EA007C336F /* Resources */ = {
@@ -390,6 +563,16 @@
 			isa = PBXTargetDependency;
 			target = D0D5CCC015A7B6EA007C336F /* CocoaClojureRuntime */;
 			targetProxy = D0D5CCD915A7B6EA007C336F /* PBXContainerItemProxy */;
+		};
+		D0E28DB015AA4034001CAB96 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Expecta;
+			targetProxy = D0E28DAF15AA4034001CAB96 /* PBXContainerItemProxy */;
+		};
+		D0E28DB215AA4034001CAB96 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Specta;
+			targetProxy = D0E28DB115AA4034001CAB96 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -456,7 +639,11 @@
 			baseConfigurationReference = D019C8B615A7B797004CBD41 /* Mac-Application.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
-				GCC_PREFIX_HEADER = "CocoaClojureRuntime/CocoaClojureRuntime-Prefix.pch";
+				GCC_PREFIX_HEADER = "CocoaClojureRuntimeTests/CocoaClojureRuntimeTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"expecta/src/**",
+					"specta/src/**",
+				);
 				INFOPLIST_FILE = "CocoaClojureRuntimeTests/CocoaClojureRuntimeTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = octest;
@@ -468,7 +655,11 @@
 			baseConfigurationReference = D019C8B615A7B797004CBD41 /* Mac-Application.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
-				GCC_PREFIX_HEADER = "CocoaClojureRuntime/CocoaClojureRuntime-Prefix.pch";
+				GCC_PREFIX_HEADER = "CocoaClojureRuntimeTests/CocoaClojureRuntimeTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"expecta/src/**",
+					"specta/src/**",
+				);
 				INFOPLIST_FILE = "CocoaClojureRuntimeTests/CocoaClojureRuntimeTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = octest;
