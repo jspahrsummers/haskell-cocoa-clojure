@@ -20,10 +20,13 @@ symbolSpecialChar = oneOf "*+!-_?/.%:&"
 
 -- Language definition parameters specific to Clojure
 lexer = P.makeTokenParser emptyDef {
-    P.reservedNames = ["true", "false", "nil"],
+    P.commentLine = ";",
     P.identStart = letter <|> symbolSpecialChar,
     P.identLetter = alphaNum <|> symbolSpecialChar,
-    P.commentLine = ";"
+    P.reservedNames = ["true", "false", "nil"],
+    
+    -- Consider macro characters to be operators
+    P.reservedOpNames = [":", "'", "@", "`", "~@", "~", "#_", "#'", "#", "\\"]
 }
 
 reserved = P.reserved lexer
@@ -31,6 +34,7 @@ parens = P.parens lexer
 brackets = P.brackets lexer
 braces = P.braces lexer
 symbol = P.symbol lexer
+reservedOp = P.reservedOp lexer
 integer = P.integer lexer
 naturalOrFloat = P.naturalOrFloat lexer
 
@@ -143,8 +147,8 @@ quotedForm = formMacro "'" "quote"
 deref = formMacro "@" "deref"
 varQuote = formMacro "#'" "var"
 
-formMacro sym name = do
-    try $ symbol sym
+formMacro op name = do
+    try $ reservedOp op
     f <- form
     return $ List [Symbol name, f]
 
