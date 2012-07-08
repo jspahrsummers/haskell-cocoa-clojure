@@ -621,6 +621,7 @@ instance Show Expr where
     -- TODO: escape special characters
     show (NSStringLiteral s) = "@\"" ++ s ++ "\""
     show (NSArrayLiteral exprs) = "@[" ++ (showDelimList ", " exprs) ++ "]"
+    show (CLJListLiteral exprs) = "[CLJList listWithValues:" ++ (showDelimList ", " exprs) ++ "]"
     show (NSDictionaryLiteral kvs) =
         let showPair :: (Expr, Expr) -> String
             showPair (k, v) = (show k) ++ ": " ++ (show v)
