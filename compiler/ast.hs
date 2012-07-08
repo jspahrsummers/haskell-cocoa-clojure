@@ -14,11 +14,7 @@ data Form =
     Symbol String |
     StringLiteral String |
     IntegerLiteral Integer |
-    RationalLiteral Rational |
-
-    -- TODO: BigDecimals are currently not supported
-    DecimalLiteral Double |
-
+    DecimalLiteral Rational |
     CharacterLiteral Char |
     NilLiteral |
     BooleanLiteral Bool |
@@ -32,8 +28,12 @@ instance Show Form where
     show (Symbol s) = s
     show (StringLiteral s) = "\"" ++ s ++ "\""
     show (IntegerLiteral n) = show n
-    show (RationalLiteral n) = show (numerator n) ++ "/" ++ show (denominator n)
-    show (DecimalLiteral n) = show n
+    show (DecimalLiteral n) =
+        let real = fromRational n :: Double
+        in if toRational real == n
+            then show real
+            else show (numerator n) ++ "/" ++ show (denominator n)
+
     show (CharacterLiteral c) = case c of
         '\n' -> "\\newline"
         '\t' -> "\\tab"
