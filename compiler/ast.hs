@@ -42,9 +42,9 @@ instance Show Form where
     show NilLiteral = "nil"
     show (BooleanLiteral True) = "true"
     show (BooleanLiteral False) = "false"
-    show (List x) = "(" ++ showDelimList " " x ++ ")"
-    show (VectorLiteral x) = "[" ++ showDelimList " " x ++ "]"
-    show (SetLiteral x) = "#{" ++ showDelimList " " x ++ "}"
+    show (List x) = "(" ++ showDelimited " " x ++ ")"
+    show (VectorLiteral x) = "[" ++ showDelimited " " x ++ "]"
+    show (SetLiteral x) = "#{" ++ showDelimited " " x ++ "}"
     show (MapLiteral kvs) =
         let showPair :: (Form, Form) -> String
             showPair (k, v) = show k ++ " " ++ show v
