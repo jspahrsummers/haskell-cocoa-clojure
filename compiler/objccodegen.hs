@@ -139,8 +139,8 @@ genForm (A.List ((A.Symbol sym):xs))
 
     | sym == "quote" =
         -- We only need head since quote only quotes and returns the first list.
-        let quotedList = head $ map genQuoted xs in
-            genUniqueDecl (InstanceType $ Identifier "CLJList") quotedList
+        let quotedForm = head $ map genQuoted xs 
+        in genUniqueDecl (InstanceType $ Identifier "CLJList") quotedForm
 
     -- TODO
     | sym == "var" = return $ VoidExpr
