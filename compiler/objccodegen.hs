@@ -236,12 +236,34 @@ genForm (A.List forms) = do
     return $ CallExpr (head exprs) (tail exprs)
 
 -- Generates a quoted expression from a form.
+-- TODO: a lot of these are really similar to genForm, can we leverage that?
 genQuoted :: A.Form -> Expr
-genQuoted A.EmptyForm = NSStringLiteral (show "")
-genQuoted (A.StringLiteral s) = NSStringLiteral (show s)
-genQuoted (A.IntegerLiteral i) = NSStringLiteral (show i)
-genQuoted (A.Symbol s) = NSStringLiteral (show s)
-genQuoted (A.List xs) = CLJListLiteral $ map genQuoted xs
+genQuoted A.EmptyForm = VoidExpr
+genQuoted (A.StringLiteral s) = NSStringLiteral $ show s
+genQuoted (A.IntegerLiteral i) = ToObjExpr $ IntLiteral $ fromInteger i
+genQuoted (A.Symbol s) = NSStringLiteral $ show $ escapedIdentifier s
+genQuoted (A.List xs) = listExpr $ map genQuoted xs
+
+-- TODO
+genQuoted (A.DecimalLiteral d) = VoidExpr
+
+-- TODO
+genQuoted (A.CharacterLiteral c) = NSStringLiteral [c]
+
+-- TODO
+genQuoted A.NilLiteral = extNilExpr
+
+-- TODO
+genQuoted (A.BooleanLiteral b) = ToObjExpr $ BoolLiteral b
+
+-- TODO
+genQuoted (A.Vector c) = VoidExpr
+
+-- TODO
+genQuoted (A.Map c) = VoidExpr
+
+-- TODO
+genQuoted (A.Set c) = VoidExpr
 
 -- Returns declarations which initialize local bindings
 genBindings :: [A.Form] -> StatementGeneratorT [Statement]
