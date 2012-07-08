@@ -76,7 +76,7 @@ genForm (A.Set forms) = do
     let rec = IdentExpr $ Identifier "NSSet"
         sel = Selector "setWithObjects:"
 
-    genUniqueDecl (InstanceType $ Identifier "NSSet") $ MessageExpr rec sel exprs
+    genUniqueDecl (InstanceType $ Identifier "NSSet") $ MessageExpr rec sel $ exprs ++ [NilLiteral]
 
 genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
@@ -623,7 +623,7 @@ instance Show Expr where
             showMessageParts [] [] = ""
             showMessageParts [selpart] [] = selpart
             showMessageParts [selpart] [arg] = selpart ++ (show arg)
-            showMessageParts [selpart] varargs = selpart ++ (showDelimList ", " varargs) ++ ", nil"
+            showMessageParts [selpart] args = selpart ++ (showDelimList ", " args)
             showMessageParts (selpart:selparts) (arg:args) =
                 selpart ++ (show arg) ++ " " ++ (showMessageParts selparts args)
 
