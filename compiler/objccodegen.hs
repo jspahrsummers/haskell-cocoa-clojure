@@ -144,7 +144,10 @@ genForm (A.List ((A.Symbol sym):xs))
 
         exprs <- mapM genForm forms
 
-        let lastExpr = last exprs
+        let paramIds = map (\(A.Symbol p) -> escapedIdentifier p) params
+            aliases = aliasDecls paramIds
+
+            lastExpr = last exprs
             lastType = typeof lastExpr
 
             rettype = case lastType of
@@ -159,8 +162,8 @@ genForm (A.List ((A.Symbol sym):xs))
             retType = rettype,
 
             -- TODO: support rest params
-            blockParams = map (\(A.Symbol p) -> (IdType, escapedIdentifier p)) params,
-            blockStmts = (map Statement (init exprs)) ++ [retstmt]
+            blockParams = map (\p -> (IdType, p)) paramIds,
+            blockStmts = aliases ++ [Label $ Identifier "_recur"] ++ (map Statement $ init exprs) ++ [retstmt]
         }
 
     | sym == "loop" = do
@@ -188,7 +191,6 @@ genForm (A.List ((A.Symbol sym):xs))
 
             updateStmts = map updateAlias $ zip exprs aliases
 
-        -- TODO: handle fn recursion points
         return $ CompoundExpr $ updateStmts ++ [Goto $ Identifier "_recur", Statement NilLiteral]
         
     -- TODO
