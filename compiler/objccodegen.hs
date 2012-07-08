@@ -85,7 +85,24 @@ genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
 -- TODO: special forms
 genForm (A.List ((A.Symbol sym):xs))
-    | sym == "def" = return $ VoidExpr
+    | sym == "def" = do
+        let ((A.Symbol var):forms) = xs
+            initForm = if null forms then A.EmptyForm else head forms
+            id = escapedIdentifier var
+
+        expr <- genForm initForm
+
+        -- TODO: avoid redeclarations
+        -- TODO: handle VoidExpr in the declaration type
+        tell $ [Declaration (typeof expr) id VoidExpr]
+
+        let updateStmt = case expr of
+                         VoidExpr -> EmptyStatement
+                         _ -> Statement $ AssignExpr (IdentExpr id) expr
+
+        -- Returns a compound expression that yields the address of the variable
+        return $ CompoundExpr [updateStmt, Statement $ AddrOfExpr id]
+
     | sym == "if" = do
         exprs <- mapM genForm xs
 
