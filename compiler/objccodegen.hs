@@ -34,12 +34,6 @@ codegenMain forms = do
 
     return $ imports ++ (mainDef : blocks)
 
-genQuoted :: A.Form -> String
-genQuoted A.EmptyForm = ""
-genQuoted (A.StringLiteral s) = show s
-genQuoted (A.IntegerLiteral i) = show i
-genQuoted (A.List x) = showDelimList ", " x
-
 genForms :: [A.Form] -> BlockGeneratorT [Statement]
 genForms [] = return []
 genForms (form : rest) = do
@@ -138,7 +132,7 @@ genForm (A.List ((A.Symbol sym):xs))
         return $ CompoundExpr $ decls ++ (map Statement exprs)
 
     | sym == "quote" = do
-        return $ CLJListLiteral $ map NSStringLiteral $ map genQuoted xs
+        return $ CLJListLiteral $ map genQuoted xs
 
     -- TODO
     | sym == "var" = return $ VoidExpr
@@ -235,6 +229,14 @@ genForm (A.List forms) = do
 
 -- TODO
 genForm (A.RationalLiteral n) = return $ VoidExpr
+
+-- Generates a quoted expression from a form.
+genQuoted :: A.Form -> Expr
+genQuoted A.EmptyForm = NSStringLiteral (show "")
+genQuoted (A.StringLiteral s) = NSStringLiteral (show s)
+genQuoted (A.IntegerLiteral i) = NSStringLiteral (show i)
+genQuoted (A.Symbol s) = NSStringLiteral (show s)
+genQuoted (A.List xs) = CLJListLiteral $ map genQuoted xs
 
 -- Returns declarations which initialize local bindings
 genBindings :: [A.Form] -> StatementGeneratorT [Statement]
@@ -589,7 +591,8 @@ data Expr =
     IfExpr Expr Expr Expr |
     AndExpr Expr Expr |
     OrExpr Expr Expr |
-    NotExpr Expr
+    NotExpr Expr |
+    VarArgsExpr [Expr] 
     deriving Eq
 
 instance Typeof Expr where
@@ -675,6 +678,7 @@ instance Show Expr where
     show (AndExpr a b) = "(" ++ (show a) ++ " && " ++ (show b) ++ ")"
     show (OrExpr a b) = "(" ++ (show a) ++ " || " ++ (show b) ++ ")"
     show (NotExpr expr) = "(!" ++ (show expr) ++ ")"
+    show (VarArgsExpr exprs) = "" ++ showDelimList ", " exprs
 
 -- Statements within a function, method, or block body
 data Statement =
