@@ -241,6 +241,8 @@ genQuoted :: A.Form -> Expr
 genQuoted A.EmptyForm = VoidExpr
 genQuoted (A.StringLiteral s) = NSStringLiteral $ show s
 genQuoted (A.IntegerLiteral i) = ToObjExpr $ IntLiteral $ fromInteger i
+
+-- TODO: this almost certainly isn't right
 genQuoted (A.Symbol s) = NSStringLiteral $ show $ escapedIdentifier s
 genQuoted (A.List xs) = listExpr $ map genQuoted xs
 
