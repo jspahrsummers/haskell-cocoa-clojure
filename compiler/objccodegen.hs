@@ -633,10 +633,10 @@ instance Show Expr where
         let showNamedParam :: (Type, Identifier) -> String
             showNamedParam (t, p) = (show t) ++ " " ++ (show p)
         in "(^ " ++ (maybe "" show r) ++ " (" ++ (intercalate ", " $ map showNamedParam ps) ++ ") {\n" ++
-            (showEntabbed stmts) ++
+            (showDelimList "\n" stmts) ++
             "\n})"
 
-    show (CompoundExpr stmts) = "({\n" ++ (showEntabbed stmts) ++ "\n})"
+    show (CompoundExpr stmts) = "({\n" ++ (showDelimList "\n" stmts) ++ "\n})"
     show (IdentExpr id) = show id
     show (AddrOfExpr id) = "(&" ++ (show id) ++ ")"
     show (DerefExpr expr) = "(*" ++ (show expr) ++ ")"
@@ -674,20 +674,26 @@ instance Typeof Statement where
     typeof (Statement expr) = typeof expr
     typeof _ = VoidType
 
--- Entabs a list of statements
-showEntabbed :: [Statement] -> String
-showEntabbed stmts =
-    let entabShow :: Statement -> String
-        entabShow stmt = "\t" ++ (show stmt)
-    in intercalate "\n" $ map entabShow stmts
+-- Shows a value, with all lines indented by one level
+showEntabbed :: Show a => a -> String
+showEntabbed val = intercalate "\n" $ map (\s -> '\t' : s) $ lines $ show val
 
+-- Shows an indented, newline-separated list of values
+showEntabbedLines :: Show a => [a] -> String
+showEntabbedLines vals = intercalate "\n" $ map showEntabbed vals
+
+-- Returns a string for use following a declaration, to initialize it with the given expression
 showInitExpr :: Expr -> String
 showInitExpr VoidExpr = ""
-showInitExpr expr = " = " ++ (show expr)
+showInitExpr expr =
+    let exprLines = lines $ show expr
+        firstLine = head exprLines
+        otherLines = map (\s -> '\t' : s) $ tail exprLines
+    in " = " ++ (intercalate "\n" $ firstLine : otherLines)
 
 instance Show Statement where
     show EmptyStatement = "\t;"
-    show (Statement expr) = "\t" ++ (show expr) ++ ";"
+    show (Statement expr) = (showEntabbed expr) ++ ";"
     show (Declaration (BlockType r pts) id expr) =
         "\t" ++ (show r) ++ " (^" ++ (show id) ++ ")(" ++ (showDelimList ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
 
@@ -695,7 +701,7 @@ instance Show Statement where
         "\t" ++ (show r) ++ " (*" ++ (show id) ++ ")(" ++ (showDelimList ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
 
     show (Declaration t id expr) = "\t" ++ (show t) ++ " " ++ (show id) ++ (showInitExpr expr) ++ ";"
-    show (AutoreleasePool stmts) = "\t@autoreleasepool {\n" ++ (showEntabbed stmts) ++ "\n\t}"
+    show (AutoreleasePool stmts) = "\t@autoreleasepool {\n" ++ (showEntabbedLines stmts) ++ "\n\t}"
     show (Return VoidExpr) = "\treturn;"
     show (Return expr) = "\treturn " ++ (show expr) ++ ";"
     show (Label id) = (show id) ++ ":"
