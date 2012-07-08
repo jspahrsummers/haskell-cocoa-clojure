@@ -289,13 +289,11 @@ genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
 extNilExpr :: Expr
 extNilExpr = MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
 
-listExpr :: Expr -> Expr -> Expr
-listExpr val n = do
+-- Create a list with the given expressions.
+listExpr :: [Expr] -> Expr
+listExpr xs = do
     let ident = IdentExpr $ Identifier "CLJList"
-        initSel = Selector "initWithValue:next:"
-        allocSel = Selector "alloc"
-
-    MessageExpr (MessageExpr ident allocSel []) initSel [val, n]
+    MessageExpr ident (Selector "listWithValues:") $ xs ++ [NilLiteral]
 
 -- Given a string representing a decimal number, returns an expression to construct an NSDecimalNumber from it
 nsDecimalNumberExpr :: String -> Expr
