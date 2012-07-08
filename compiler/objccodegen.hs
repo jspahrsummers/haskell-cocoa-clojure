@@ -76,7 +76,7 @@ genForm (A.Set forms) = do
     let rec = IdentExpr $ Identifier "NSSet"
         sel = Selector "setWithObjects:"
 
-    genUniqueDecl (InstanceType $ Identifier "NSSet") $ VarargMessageExpr rec sel [] exprs
+    genUniqueDecl (InstanceType $ Identifier "NSSet") $ MessageExpr rec sel exprs
 
 genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
@@ -545,8 +545,8 @@ data Expr =
     ToObjExpr Expr |
     -- The first expression here must be a valid lvalue (e.g., IdentExpr, DerefExpr)
     AssignExpr Expr Expr |
+    -- If more arguments are provided than the selector has parts, the message is assumed to use varargs
     MessageExpr Expr Selector [Expr] |
-    VarargMessageExpr Expr Selector [Expr] [Expr] |
     CallExpr Expr [Expr] |
     -- Ternary operator
     IfExpr Expr Expr Expr |
@@ -618,15 +618,12 @@ instance Show Expr where
     show (DerefExpr expr) = "(*" ++ (show expr) ++ ")"
     show (ToObjExpr expr) = "@(" ++ (show expr) ++ ")"
     show (AssignExpr lexpr rexpr) = "(" ++ (show lexpr) ++ " = " ++ (show rexpr) ++ ")"
-    show (MessageExpr rec sel args) = show $ VarargMessageExpr rec sel args []
-    show (VarargMessageExpr rec sel args varargs) =
+    show (MessageExpr rec sel args) =
         let showMessageParts :: [String] -> [Expr] -> String
             showMessageParts [] [] = ""
-            showMessageParts [selpart] [] = 
-                if null varargs
-                    then selpart
-                    else selpart ++ (showDelimList ", " varargs) ++ ", nil"
-
+            showMessageParts [selpart] [] = selpart
+            showMessageParts [selpart] [arg] = selpart ++ (show arg)
+            showMessageParts [selpart] varargs = selpart ++ (showDelimList ", " varargs) ++ ", nil"
             showMessageParts (selpart:selparts) (arg:args) =
                 selpart ++ (show arg) ++ " " ++ (showMessageParts selparts args)
 
