@@ -614,7 +614,7 @@ instance Typeof Expr where
 
 instance Show Expr where
     show VoidExpr = "((void)0)"
-    show NilLiteral = "nil"
+    show NilLiteral = "((id)nil)"
     show NullLiteral = "NULL"
     show (BoolLiteral True) = "YES"
     show (BoolLiteral False) = "NO"
