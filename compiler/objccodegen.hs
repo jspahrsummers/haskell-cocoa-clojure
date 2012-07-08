@@ -612,7 +612,6 @@ instance Typeof Expr where
     typeof SelectorLiteral {} = SelectorType
     typeof NSStringLiteral {} = InstanceType $ Identifier "NSString"
     typeof NSArrayLiteral {} = InstanceType $ Identifier "NSArray"
-    typeof CLJListLiteral {} = InstanceType $ Identifier "CLJList"
     typeof NSDictionaryLiteral {} = InstanceType $ Identifier "NSDictionary"
     typeof (BlockLiteral (Just t) ps _) =
         let pts = fst $ unzip ps
@@ -650,7 +649,6 @@ instance Show Expr where
     -- TODO: escape special characters
     show (NSStringLiteral s) = "@\"" ++ s ++ "\""
     show (NSArrayLiteral exprs) = "@[" ++ (showDelimList ", " exprs) ++ "]"
-    show (CLJListLiteral exprs) = "[CLJList listWithValues:" ++ (showDelimList ", " exprs) ++ ", nil]"
     show (NSDictionaryLiteral kvs) =
         let showPair :: (Expr, Expr) -> String
             showPair (k, v) = (show k) ++ ": " ++ (show v)
