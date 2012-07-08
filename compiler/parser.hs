@@ -4,8 +4,9 @@ module Parser (forms)
 
 import AST
 import Control.Monad
+import Control.Applicative
 import Data.List
-import Text.Parsec
+import Text.Parsec hiding ((<|>), many)
 import Text.Parsec.Char
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as P
@@ -28,36 +29,30 @@ symbol = P.symbol lexer
 
 whiteSpace = skipMany (space <|> char ',')
 
-stringLiteral = liftM StringLiteral $ P.stringLiteral lexer
-identifier = liftM Symbol $ P.identifier lexer
+stringLiteral = StringLiteral <$> P.stringLiteral lexer
+identifier = Symbol <$> P.identifier lexer
 
 -- TODO: Clojure number parsing rules
 -- TODO: ratio support
 -- TODO: BigDecimal support
-numberLiteral = liftM (either IntegerLiteral DecimalLiteral) $ P.naturalOrFloat lexer
+numberLiteral = either IntegerLiteral DecimalLiteral <$> P.naturalOrFloat lexer
 
-nil = do
-    reserved "nil"
-    return NilLiteral
+nil = NilLiteral <$ reserved "nil"
 
-true = do
-    reserved "true"
-    return $ BooleanLiteral True
+true = BooleanLiteral True <$ reserved "true"
 
-false = do
-    reserved "false"
-    return $ BooleanLiteral False
+false = BooleanLiteral False <$ reserved "false"
 
-list = liftM List $ parens (many form)
-vectorLiteral = liftM Vector $ brackets (many form)
+list = List <$> parens (many form)
+vectorLiteral = Vector <$> brackets (many form)
 
 mapLiteral =
-    let keyValuePair = liftM (\[x,y] -> (x,y)) $ count 2 form
-    in liftM Map $ braces (many keyValuePair)
+    let keyValuePair = (\[x,y] -> (x,y)) <$> count 2 form
+    in Map <$> braces (many keyValuePair)
 
 setLiteral = do
     try $ char '#'
-    liftM Set $ braces (many form)
+    Set <$> braces (many form)
 
 form = do
     whiteSpace
@@ -77,37 +72,29 @@ forms = many form
 -- (i.e., they should be reader macros, not hardcoded)
 
 characterLiteral = do
-    let newlineLiteral = do
-            symbol "newline"
-            return '\n'
-        spaceLiteral = do
-            symbol "space"
-            return ' '
-        tabLiteral = do
-            symbol "tab"
-            return '\t'
+    let newlineLiteral = '\n' <$ symbol "newline"
+        spaceLiteral = ' ' <$ symbol "space"
+        tabLiteral = '\t' <$ symbol "tab"
 
     char '\\'
-    liftM CharacterLiteral $
-        try newlineLiteral <|>
-        try spaceLiteral <|>
-        try tabLiteral <|>
-        anyChar
+    CharacterLiteral <$>
+      choice [ try newlineLiteral
+             , try spaceLiteral
+             , try tabLiteral
+             , anyChar
+             ]
 
-ignoreNext = do
-    try $ symbol "#_"
-    form
-    return EmptyForm
+ignoreNext = EmptyForm <$ try (symbol "#_") *> form
 
 anonymousFunction = do
     try $ char '#'
     f <- list
 
     let symbolIsArgLiteral :: String -> Bool
-        symbolIsArgLiteral s = (head s) == '%'
+        symbolIsArgLiteral s = head s == '%'
 
     let collectArgLiterals :: Form -> [Form]
-        collectArgLiterals sym@(Symbol s) = if symbolIsArgLiteral s then [sym] else []
+        collectArgLiterals sym@(Symbol s) = [sym | symbolIsArgLiteral s]
         collectArgLiterals _ = []
 
     let sortArgs :: Form -> Form -> Ordering
