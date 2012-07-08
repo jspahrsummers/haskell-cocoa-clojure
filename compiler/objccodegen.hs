@@ -101,6 +101,8 @@ genForm (A.List ((A.Symbol sym):xs))
 
     | sym == "do" = do
         exprs <- mapM genForm xs
+
+        -- TODO: this won't work correctly in the presence of local bindings
         tell $ map Statement $ init exprs
 
         return $ last exprs
@@ -141,8 +143,40 @@ genForm (A.List ((A.Symbol sym):xs))
             blockStmts = (map Statement (init exprs)) ++ [retstmt]
         }
 
-    | sym == "loop" = return $ VoidExpr
-    | sym == "recur" = return $ VoidExpr
+    | sym == "loop" = do
+        let ((A.Vector bindings):forms) = xs
+
+        decls <- genBindings bindings
+        exprs <- mapM genForm forms
+
+        let aliasDecls :: [Statement] -> Int -> [Statement]
+            aliasDecls [] _ = []
+            aliasDecls ((Declaration t id _):xs) i =
+                (Declaration (PointerType t) (Identifier $ "_a" ++ (show i)) $ AddrOfExpr id) : aliasDecls xs (i + 1)
+
+            aliases = aliasDecls decls 0
+
+            block = BlockLiteral {
+                retType = Just IdType,
+                blockParams = [],
+                blockStmts = decls ++ aliases ++ [Label $ Identifier "_loop"] ++ (map Statement $ init exprs) ++ [Return $ last exprs]
+            }
+
+        return $ CallExpr block []
+
+    | sym == "recur" = do
+        exprs <- mapM genForm xs
+
+        let updateAliases :: [Expr] -> Int -> [Expr]
+            updateAliases [] _ = []
+            updateAliases (x:xs) i =
+                (AssignExpr (DerefExpr $ IdentExpr $ Identifier $ "_a" ++ (show i)) x) : updateAliases xs (i + 1)
+
+            updateStmts = map Statement $ updateAliases exprs 0
+
+        -- TODO: handle fn recursion points
+        return $ CompoundExpr $ updateStmts ++ [Goto $ Identifier "_loop", Statement NilLiteral]
+        
     | sym == "throw" = return $ VoidExpr
     | sym == "try" = return $ VoidExpr
     {- TODO: these?
@@ -177,7 +211,9 @@ genUniqueDecl :: Type -> Expr -> StatementGeneratorT Expr
 genUniqueDecl t expr = do
     id <- lift $ lift uniqueId
 
-    let var = Identifier $ "v" ++ (show id)
+    let var = Identifier $ "_v" ++ (show id)
+
+    -- TODO: this won't work correctly within a 'let' or similar form
     tell $ [Declaration t var expr]
 
     return $ IdentExpr var
@@ -214,6 +250,10 @@ uniqueId = do
 
 -- TODO: these writers should probably use a structure more efficient than a list
 type BlockGeneratorT = WriterT [BasicBlock] GeneratorStateT
+
+-- TODO: might need to refactor or eliminate this writer,
+-- since it's usually not correct to generate statements outside of the current code block
+-- (e.g., within a 'let' form, which translates to a compound expression)
 type StatementGeneratorT = WriterT [Statement] BlockGeneratorT
 
 {-
