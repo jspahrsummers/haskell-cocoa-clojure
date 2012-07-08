@@ -74,8 +74,13 @@ repl' s formsSoFar =
 
                  putStrLn objc
 
+                 let flags = ["-Llib", "-lCocoaClojureRuntime", "-Iruntime/CocoaClojureRuntime",
+                              "-xobjective-c", "-fobjc-arc", "-framework", "Foundation",
+                              "-Wno-unused-value",
+                              "-"]
+
                  (Just clangIn, _, _, clang) <- createProcess
-                     (proc "clang" ["-L", "lib", "-lCocoaClojureRuntime", "-Iruntime/CocoaClojureRuntime", "-xobjective-c", "-Wno-unused-value", "-framework", "Foundation", "-"])
+                     (proc "clang" flags)
                      { std_in = CreatePipe }
 
                  hPutStrLn clangIn objc
