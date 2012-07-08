@@ -6,6 +6,7 @@ import AST
 import Control.Monad
 import Control.Applicative
 import Data.List
+import Data.Ratio
 import Text.Parsec hiding ((<|>), many)
 import Text.Parsec.Char
 import Text.Parsec.Language
@@ -26,6 +27,8 @@ parens = P.parens lexer
 brackets = P.brackets lexer
 braces = P.braces lexer
 symbol = P.symbol lexer
+integer = P.integer lexer
+naturalOrFloat = P.naturalOrFloat lexer
 
 whiteSpace = skipMany (space <|> char ',')
 
@@ -33,14 +36,24 @@ stringLiteral = StringLiteral <$> P.stringLiteral lexer
 identifier = Symbol <$> P.identifier lexer
 
 -- TODO: Clojure number parsing rules
--- TODO: ratio support
--- TODO: BigDecimal support
-numberLiteral = either IntegerLiteral DecimalLiteral <$> P.naturalOrFloat lexer
+-- TODO: BigDecimal (M suffix) support
+numberLiteral = do
+    let parseDenom = do
+            try (symbol "/")
+            integer
+
+    e <- naturalOrFloat
+    case e of
+        (Right dbl) -> return $ DecimalLiteral $ toRational dbl
+        (Left num) -> do
+            m <- optionMaybe parseDenom
+
+            return $ case m of
+                (Just denom) -> DecimalLiteral $ num % denom
+                Nothing -> IntegerLiteral num
 
 nil = NilLiteral <$ reserved "nil"
-
 true = BooleanLiteral True <$ reserved "true"
-
 false = BooleanLiteral False <$ reserved "false"
 
 list = List <$> parens (many form)
