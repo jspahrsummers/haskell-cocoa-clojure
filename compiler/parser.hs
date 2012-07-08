@@ -12,7 +12,7 @@ import Text.Parsec.Char
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as P
 
-symbolSpecialChar = oneOf "*+!-_?/.%:"
+symbolSpecialChar = oneOf "*+!-_?/.%:&"
 
 -- Language definition parameters specific to Clojure
 lexer = P.makeTokenParser emptyDef {
@@ -107,23 +107,30 @@ anonymousFunction = do
         symbolIsArgLiteral s = head s == '%'
 
     let collectArgLiterals :: Form -> [Form]
+        collectArgLiterals (Symbol "%&") = [Symbol "&%"]
         collectArgLiterals sym@(Symbol s) = [sym | symbolIsArgLiteral s]
         collectArgLiterals _ = []
+
+    -- Rename %& arguments to &%, to match the rest syntax required by fn
+    let renameRestArgs :: Form -> [Form]
+        renameRestArgs (Symbol "%&") = [Symbol "&%"]
+        renameRestArgs f = [f]
 
     let sortArgs :: Form -> Form -> Ordering
         sortArgs (Symbol "%") _ = LT
         sortArgs _ (Symbol "%") = GT
 
-        -- TODO: Rest arguments need to be renamed (to begin, instead of end, with &) as part of the rewriting
         sortArgs (Symbol "%&") _ = GT
         sortArgs _ (Symbol "%&") = LT
+
         sortArgs (Symbol a) (Symbol b) =
            compare (read (tail a) :: Int) (read (tail b) :: Int)
 
     let args = sortBy sortArgs $ foldMapForm collectArgLiterals f
 
     -- #(...) => (fn [args] (...))
-    return $ List [Symbol "fn", Vector args, f]
+    -- TODO: folding twice like this is probably not the most efficient thing
+    return $ List [Symbol "fn", Vector args, List $ foldMapForm renameRestArgs f]
 
 keyword = do
     try $ char ':'
