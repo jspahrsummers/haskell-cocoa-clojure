@@ -28,11 +28,9 @@ instance Show Form where
     show (Symbol s) = s
     show (StringLiteral s) = "\"" ++ s ++ "\""
     show (IntegerLiteral n) = show n
-    show (DecimalLiteral n) =
-        let real = fromRational n :: Double
-        in if toRational real == n
-            then show real
-            else show (numerator n) ++ "/" ++ show (denominator n)
+    show (DecimalLiteral n) = case maybeDouble n of
+        (Just dbl) -> show dbl
+        Nothing -> show (numerator n) ++ "/" ++ show (denominator n)
 
     show (CharacterLiteral c) = case c of
         '\n' -> "\\newline"

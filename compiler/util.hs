@@ -1,5 +1,5 @@
 module Util (
-        maybeFile, showDelimList, splitOn
+        maybeDouble, maybeFile, showDelimList, splitOn
     ) where
 
 import Data.List
@@ -11,6 +11,12 @@ maybeFile :: FilePath -> IO (Maybe FilePath)
 maybeFile p = do
     e <- doesFileExist p
     return $ if e then Just p else Nothing
+
+-- Converts a Rational into a Double, only if it would not lose precision
+maybeDouble :: Rational -> Maybe Double
+maybeDouble r = 
+    let dbl = fromRational r :: Double
+    in if toRational dbl == r then Just dbl else Nothing
 
 -- Shows every value given, delimited by the given string
 showDelimList :: Show a => String -> [a] -> String
