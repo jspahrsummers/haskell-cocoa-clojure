@@ -13,4 +13,4 @@ splitOn sep l =
     let (part, rest) = break (== sep) l
     in if null rest
         then [part]
-        else [part] ++ (splitOn sep $ tail rest)
+        else part : splitOn sep (tail rest)

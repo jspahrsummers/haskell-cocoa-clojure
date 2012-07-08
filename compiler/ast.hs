@@ -6,6 +6,7 @@ module AST (
 import Data.List
 import Data.Monoid
 import Data.Ratio
+import Control.Applicative ((<$>))
 import Util
 
 data Form =
@@ -31,34 +32,34 @@ instance Show Form where
     show (Symbol s) = s
     show (StringLiteral s) = "\"" ++ s ++ "\""
     show (IntegerLiteral n) = show n
-    show (RationalLiteral n) = (show $ numerator n) ++ "/" ++ (show $ denominator n)
+    show (RationalLiteral n) = show (numerator n) ++ "/" ++ show (denominator n)
     show (DecimalLiteral n) = show n
     show (CharacterLiteral c) = case c of
         '\n' -> "\\newline"
         '\t' -> "\\tab"
-        _ -> "'" ++ [c] ++ "'"
+        _ -> '\'':c:"'"
 
     show NilLiteral = "nil"
     show (BooleanLiteral True) = "true"
     show (BooleanLiteral False) = "false"
-    show (List x) = "(" ++ (showDelimList " " x) ++ ")"
-    show (Vector x) = "[" ++ (showDelimList " " x) ++ "]"
-    show (Set x) = "#{" ++ (showDelimList " " x) ++ "}"
+    show (List x) = "(" ++ showDelimList " " x ++ ")"
+    show (Vector x) = "[" ++ showDelimList " " x ++ "]"
+    show (Set x) = "#{" ++ showDelimList " " x ++ "}"
     show (Map kvs) =
         let showPair :: (Form, Form) -> String
-            showPair (k, v) = (show k) ++ " " ++ (show v)
-        in "{" ++ (intercalate ", " $ map showPair kvs) ++ "}"
+            showPair (k, v) = show k ++ " " ++ show v
+        in "{" ++ intercalate ", " (showPair <$> kvs) ++ "}"
 
 -- Folds and concats over all forms in an AST
 foldMapForm :: Monoid m => (Form -> m) -> Form -> m
-foldMapForm f form@(List forms) = f form `mappend` foldMapFormList f forms
-foldMapForm f form@(Vector forms) = f form `mappend` foldMapFormList f forms
-foldMapForm f form@(Set forms) = f form `mappend` foldMapFormList f forms
+foldMapForm f form@(List forms) = f form <> foldMapFormList f forms
+foldMapForm f form@(Vector forms) = f form <> foldMapFormList f forms
+foldMapForm f form@(Set forms) = f form <> foldMapFormList f forms
 foldMapForm f form@(Map kvps) =
-    let kvf (k, v) = foldMapForm f k `mappend` foldMapForm f v
-    in f form `mappend` mconcat (fmap kvf kvps)
+    let kvf (k, v) = foldMapForm f k <> foldMapForm f v
+    in f form <> mconcat (kvf <$> kvps)
 
 foldMapForm f form = f form
 
 foldMapFormList :: Monoid m => (Form -> m) -> [Form] -> m
-foldMapFormList f forms = mconcat (fmap (foldMapForm f) forms)
+foldMapFormList f forms = mconcat $ foldMapForm f <$> forms
