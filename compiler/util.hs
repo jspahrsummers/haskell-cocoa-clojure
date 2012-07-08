@@ -1,7 +1,16 @@
-module Util (showDelimList, splitOn)
-    where
+module Util (
+        maybeFile, showDelimList, splitOn
+    ) where
 
 import Data.List
+import System.Directory
+import System.IO
+
+-- Determines whether a given file path exists, returning Nothing if it does not
+maybeFile :: FilePath -> IO (Maybe FilePath)
+maybeFile p = do
+    e <- doesFileExist p
+    return $ if e then Just p else Nothing
 
 -- Shows every value given, delimited by the given string
 showDelimList :: Show a => String -> [a] -> String
