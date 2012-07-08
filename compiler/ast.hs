@@ -52,12 +52,15 @@ instance Show Form where
 
 -- Folds and concats over all forms in an AST
 foldMapForm :: Monoid m => (Form -> m) -> Form -> m
-foldMapForm f form@(List forms) = f form <> foldMapFormList f forms
 foldMapForm f form@(Vector forms) = f form <> foldMapFormList f forms
 foldMapForm f form@(Set forms) = f form <> foldMapFormList f forms
 foldMapForm f form@(Map kvps) =
     let kvf (k, v) = foldMapForm f k <> foldMapForm f v
     in f form <> mconcat (kvf <$> kvps)
+
+-- Don't fold quoted lists (but do pass the list itself into the function)
+foldMapForm f form@(List ((Symbol "quote"):_)) = f form
+foldMapForm f form@(List forms) = f form <> foldMapFormList f forms
 
 foldMapForm f form = f form
 
