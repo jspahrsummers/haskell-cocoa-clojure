@@ -599,8 +599,7 @@ data Expr =
     IfExpr Expr Expr Expr |
     AndExpr Expr Expr |
     OrExpr Expr Expr |
-    NotExpr Expr |
-    VarArgsExpr [Expr] 
+    NotExpr Expr
     deriving Eq
 
 instance Typeof Expr where
@@ -686,7 +685,6 @@ instance Show Expr where
     show (AndExpr a b) = "(" ++ (show a) ++ " && " ++ (show b) ++ ")"
     show (OrExpr a b) = "(" ++ (show a) ++ " || " ++ (show b) ++ ")"
     show (NotExpr expr) = "(!" ++ (show expr) ++ ")"
-    show (VarArgsExpr exprs) = "" ++ showDelimList ", " exprs
 
 -- Statements within a function, method, or block body
 data Statement =
