@@ -8,7 +8,7 @@ all: cocoa-clojure
 .PHONY: clean cocoa-clojure install repl runtime
 
 clean:
-	rm -f $(BINARY)
+	rm -f $(BINARY) $(RUNTIME)
 	rm -f compiler/*.hi
 	rm -f compiler/*.o
 	cd runtime && xcodebuild -alltargets clean && rm -rf build
