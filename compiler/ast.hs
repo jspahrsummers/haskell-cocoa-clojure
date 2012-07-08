@@ -1,11 +1,12 @@
 module AST (
         Form(..),
-        foldMapForm
+        collectSymbols,
+        mapSymbols
     ) where
 
 import Data.List
-import Data.Monoid
 import Data.Ratio
+import qualified Data.Set as Set
 import Control.Applicative ((<$>))
 import Util
 
@@ -48,19 +49,30 @@ instance Show Form where
             showPair (k, v) = show k ++ " " ++ show v
         in "{" ++ intercalate ", " (showPair <$> kvs) ++ "}"
 
--- Folds and concats over all forms in an AST
-foldMapForm :: Monoid m => (Form -> m) -> Form -> m
-foldMapForm f form@(Vector forms) = f form <> foldMapFormList f forms
-foldMapForm f form@(Set forms) = f form <> foldMapFormList f forms
-foldMapForm f form@(Map kvps) =
-    let kvf (k, v) = foldMapForm f k <> foldMapForm f v
-    in f form <> mconcat (kvf <$> kvps)
+-- Maps over a list and unions the resulting sets
+unionMap :: Ord b => (a -> Set.Set b) -> [a] -> Set.Set b
+unionMap f l = Set.unions $ map f l
 
--- Don't fold quoted lists (but do pass the list itself into the function)
-foldMapForm f form@(List ((Symbol "quote"):_)) = f form
-foldMapForm f form@(List forms) = f form <> foldMapFormList f forms
+-- Collects all symbols used within a form
+collectSymbols :: Form -> Set.Set String
+collectSymbols (Symbol s) = Set.singleton s
+collectSymbols (List forms) = unionMap collectSymbols forms
+collectSymbols (Vector forms) = unionMap collectSymbols forms
+collectSymbols (Set forms) = unionMap collectSymbols forms
+collectSymbols (Map kvps) =
+    let (keys, values) = unzip kvps
+    in (unionMap collectSymbols keys) `Set.union` (unionMap collectSymbols values)
 
-foldMapForm f form = f form
+collectSymbols _ = Set.empty
 
-foldMapFormList :: Monoid m => (Form -> m) -> [Form] -> m
-foldMapFormList f forms = mconcat $ foldMapForm f <$> forms
+-- Maps over all Symbols within a form, allowing them to be renamed or replaced
+mapSymbols :: (Form -> Form) -> Form -> Form
+mapSymbols f form@(Symbol _) = f form
+mapSymbols f (List forms) = List $ map f forms
+mapSymbols f (Vector forms) = Vector $ map f forms
+mapSymbols f (Set forms) = Set $ map f forms
+mapSymbols f (Map kvps) =
+    let (keys, values) = unzip kvps
+    in Map $ zip (map f keys) (map f values)
+
+mapSymbols f form = form

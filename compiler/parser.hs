@@ -7,6 +7,7 @@ import Control.Monad
 import Control.Applicative
 import Data.List
 import Data.Ratio
+import qualified Data.Set as Set
 import Text.Parsec hiding ((<|>), many)
 import Text.Parsec.Char
 import Text.Parsec.Language
@@ -101,36 +102,34 @@ ignoreNext = EmptyForm <$ try (symbol "#_") *> form
 
 anonymousFunction = do
     try $ char '#'
-    f <- list
+    forms <- list
 
     let symbolIsArgLiteral :: String -> Bool
         symbolIsArgLiteral s = head s == '%'
 
-    let collectArgLiterals :: Form -> [Form]
-        collectArgLiterals (Symbol "%&") = [Symbol "&%"]
-        collectArgLiterals sym@(Symbol s) = [sym | symbolIsArgLiteral s]
-        collectArgLiterals _ = []
+    -- Renames %& arguments to &%, to match the rest syntax required by fn
+    let renameArg :: String -> String
+        renameArg "%&" = "&%"
+        renameArg s = s
 
-    -- Rename %& arguments to &%, to match the rest syntax required by fn
-    let renameRestArgs :: Form -> [Form]
-        renameRestArgs (Symbol "%&") = [Symbol "&%"]
-        renameRestArgs f = [f]
+        renameForm :: Form -> Form
+        renameForm (Symbol s) = Symbol $ renameArg s
+        renameForm form = form
 
-    let sortArgs :: Form -> Form -> Ordering
-        sortArgs (Symbol "%") _ = LT
-        sortArgs _ (Symbol "%") = GT
+    let sortArgs :: String -> String -> Ordering
+        sortArgs "%" _ = LT
+        sortArgs _ "%" = GT
 
-        sortArgs (Symbol "%&") _ = GT
-        sortArgs _ (Symbol "%&") = LT
+        sortArgs "%&" _ = GT
+        sortArgs _ "%&" = LT
 
-        sortArgs (Symbol a) (Symbol b) =
-           compare (read (tail a) :: Int) (read (tail b) :: Int)
+        sortArgs a b = compare (read (tail a) :: Int) (read (tail b) :: Int)
 
-    let args = sortBy sortArgs $ foldMapForm collectArgLiterals f
+    let args = Set.toList $ Set.filter symbolIsArgLiteral $ collectSymbols forms
+        renamedArgs = map renameArg $ sortBy sortArgs args
 
     -- #(...) => (fn [args] (...))
-    -- TODO: folding twice like this is probably not the most efficient thing
-    return $ List [Symbol "fn", Vector args, List $ foldMapForm renameRestArgs f]
+    return $ List [Symbol "fn", Vector $ map Symbol renamedArgs, mapSymbols renameForm forms]
 
 keyword = do
     try $ char ':'
