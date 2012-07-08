@@ -6,12 +6,13 @@ import AST
 import Control.Monad
 import Control.Applicative
 import Data.List
+import Data.Ratio
 import Text.Parsec hiding ((<|>), many)
 import Text.Parsec.Char
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as P
 
-symbolSpecialChar = oneOf "*+!-_?/.%:"
+symbolSpecialChar = oneOf "*+!-_?/.%:&"
 
 -- Language definition parameters specific to Clojure
 lexer = P.makeTokenParser emptyDef {
@@ -26,6 +27,8 @@ parens = P.parens lexer
 brackets = P.brackets lexer
 braces = P.braces lexer
 symbol = P.symbol lexer
+integer = P.integer lexer
+naturalOrFloat = P.naturalOrFloat lexer
 
 whiteSpace = skipMany (space <|> char ',')
 
@@ -33,14 +36,24 @@ stringLiteral = StringLiteral <$> P.stringLiteral lexer
 identifier = Symbol <$> P.identifier lexer
 
 -- TODO: Clojure number parsing rules
--- TODO: ratio support
--- TODO: BigDecimal support
-numberLiteral = either IntegerLiteral DecimalLiteral <$> P.naturalOrFloat lexer
+-- TODO: BigDecimal (M suffix) support
+numberLiteral = do
+    let parseDenom = do
+            try (symbol "/")
+            integer
+
+    e <- naturalOrFloat
+    case e of
+        (Right dbl) -> return $ DecimalLiteral $ toRational dbl
+        (Left num) -> do
+            m <- optionMaybe parseDenom
+
+            return $ case m of
+                (Just denom) -> DecimalLiteral $ num % denom
+                Nothing -> IntegerLiteral num
 
 nil = NilLiteral <$ reserved "nil"
-
 true = BooleanLiteral True <$ reserved "true"
-
 false = BooleanLiteral False <$ reserved "false"
 
 list = List <$> parens (many form)
@@ -94,23 +107,30 @@ anonymousFunction = do
         symbolIsArgLiteral s = head s == '%'
 
     let collectArgLiterals :: Form -> [Form]
+        collectArgLiterals (Symbol "%&") = [Symbol "&%"]
         collectArgLiterals sym@(Symbol s) = [sym | symbolIsArgLiteral s]
         collectArgLiterals _ = []
+
+    -- Rename %& arguments to &%, to match the rest syntax required by fn
+    let renameRestArgs :: Form -> [Form]
+        renameRestArgs (Symbol "%&") = [Symbol "&%"]
+        renameRestArgs f = [f]
 
     let sortArgs :: Form -> Form -> Ordering
         sortArgs (Symbol "%") _ = LT
         sortArgs _ (Symbol "%") = GT
 
-        -- TODO: Rest arguments need to be renamed (to begin, instead of end, with &) as part of the rewriting
         sortArgs (Symbol "%&") _ = GT
         sortArgs _ (Symbol "%&") = LT
+
         sortArgs (Symbol a) (Symbol b) =
            compare (read (tail a) :: Int) (read (tail b) :: Int)
 
     let args = sortBy sortArgs $ foldMapForm collectArgLiterals f
 
     -- #(...) => (fn [args] (...))
-    return $ List [Symbol "fn", Vector args, f]
+    -- TODO: folding twice like this is probably not the most efficient thing
+    return $ List [Symbol "fn", Vector args, List $ foldMapForm renameRestArgs f]
 
 keyword = do
     try $ char ':'
