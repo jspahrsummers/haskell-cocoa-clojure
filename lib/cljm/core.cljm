@@ -1,0 +1,2 @@
+(def println
+    (fn [x] (NSLog "%@" x) nil))
