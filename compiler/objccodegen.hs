@@ -591,6 +591,8 @@ instance Typeof Expr where
 
     typeof ToObjExpr {} = IdType
     typeof (AssignExpr _ expr) = typeof expr
+    -- TODO: handle other return types?
+    typeof MessageExpr {} = IdType
     typeof (IfExpr _ expr _) = typeof expr
     typeof AndExpr {} = BoolType
     typeof OrExpr {} = BoolType
