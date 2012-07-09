@@ -152,16 +152,12 @@ genForm (A.List ((A.Symbol sym):xs))
             lastExpr = last exprs
             lastType = typeof lastExpr
 
-            rettype = case lastType of
-                      VoidType -> Nothing
-                      t -> Just t
-
-            retstmt = case lastType of
+            retstmt = case typeof (lastExpr) of
                       VoidType -> Statement lastExpr
                       t -> Return lastExpr
 
         return $ BlockLiteral {
-            retType = rettype,
+            retType = Just IdType,
 
             -- TODO: support rest params
             blockParams = map (\p -> (IdType, p)) paramIds,
