@@ -5,24 +5,26 @@ import qualified AST as A
 import Control.Monad.State.Lazy
 import Control.Monad.Writer.Lazy
 import Data.Char
+import qualified Data.Foldable as Foldable
 import Data.List
 import Data.Ratio
+import qualified Data.Sequence as Seq
 import System.IO
 import Util
 
+type Seq = Seq.Seq
+
 codegen :: [A.Form] -> String
-codegen forms =
-    let st = GeneratorState { counter = 0 }
-    in showDelimited "\n" $ sort $ evalState (codegenMain forms) st
+codegen forms = showDelimited "\n" $ sort $ codegenMain forms
 
 codegenToFile :: Handle -> [A.Form] -> IO ()
 codegenToFile fd forms = hPutStrLn fd $ codegen forms
 
-codegenMain :: [A.Form] -> GeneratorStateT [BasicBlock]
-codegenMain forms = do
-    (stmts, blocks) <- runWriterT $ genForms forms
+codegenMain :: [A.Form] -> [BasicBlock]
+codegenMain forms =
+    let (stmts, blocks) = runWriter $ genForms forms
 
-    let imports = [SystemImport "Foundation/Foundation.h", SystemImport "objc/runtime.h", LocalImport "CocoaClojureRuntime.h"]
+        imports = [SystemImport "Foundation/Foundation.h", SystemImport "objc/runtime.h", LocalImport "CocoaClojureRuntime.h"]
         mainType = FunctionType IntType [IntType, PointerType (PointerType CharType)]
         mainProto = FuncProto {
             funcType = mainType,
@@ -33,20 +35,19 @@ codegenMain forms = do
         retStmt = Return $ IntLiteral 0
         mainDef = FuncDef mainProto $ [AutoreleasePool (stmts ++ [retStmt])]
 
-    return $ imports ++ (mainDef : blocks)
+    in imports ++ (mainDef : (Foldable.toList blocks))
 
-genForms :: [A.Form] -> BlockGeneratorT [Statement]
+genForms :: [A.Form] -> Writer (Seq BasicBlock) [Statement]
 genForms [] = return []
 genForms (form : rest) = do
-    (finalExpr, stmts) <- runWriterT $ genForm form
-    s2 <- genForms rest
+    expr <- genForm form
+    stmts <- genForms rest
 
-    -- Make sure to emit the final expression, even if the value is not used
-    return $ stmts ++ [Statement finalExpr] ++ s2
+    return $ (Statement expr) : stmts
 
 -- Emits code for a form
 -- Returns an expression representing the value of the form
-genForm :: A.Form -> StatementGeneratorT Expr
+genForm :: A.Form -> Writer (Seq BasicBlock) Expr
 genForm A.EmptyForm = return VoidExpr
 genForm (A.StringLiteral s) = return $ NSStringLiteral s
 genForm (A.BooleanLiteral b) = return $ ToObjExpr $ BoolLiteral b
@@ -66,7 +67,7 @@ genForm (A.DecimalLiteral n) = case maybeDouble n of
 
 genForm (A.VectorLiteral forms) = do
     exprs <- mapM genForm forms
-    genUniqueInitDecl $ NSArrayLiteral exprs
+    return $ NSArrayLiteral exprs
 
 genForm (A.MapLiteral kvs) = do
     let (keys, values) = unzip kvs
@@ -74,7 +75,7 @@ genForm (A.MapLiteral kvs) = do
     keyExprs <- mapM genForm keys
     valueExprs <- mapM genForm values
 
-    genUniqueInitDecl $ NSDictionaryLiteral $ zip keyExprs valueExprs
+    return $ NSDictionaryLiteral $ zip keyExprs valueExprs
 
 genForm (A.SetLiteral forms) = do
     exprs <- mapM genForm forms
@@ -82,13 +83,11 @@ genForm (A.SetLiteral forms) = do
     let rec = IdentExpr $ Identifier "NSSet"
         sel = Selector "setWithObjects:"
 
-    genUniqueDecl (InstanceType $ Identifier "NSSet") $ MessageExpr rec sel $ exprs ++ [NilLiteral]
+    return $ MessageExpr rec sel $ exprs ++ [NilLiteral]
 
 genForm (A.Symbol s) = return $ IdentExpr $ escapedIdentifier s
 
-genForm (A.List []) =
-    genUniqueDecl (InstanceType $ Identifier "CLJList") $ listExpr []
-
+genForm (A.List []) = return $ listExpr []
 genForm (A.List ((A.Symbol sym):xs))
     | sym == "def" = do
         let ((A.Symbol var):forms) = xs
@@ -99,7 +98,7 @@ genForm (A.List ((A.Symbol sym):xs))
 
         -- TODO: avoid redeclarations
         -- TODO: handle VoidExpr in the declaration type
-        tell $ [Declaration (typeof expr) id VoidExpr]
+        tell $ Seq.singleton $ GlobalVarDecl (typeof expr) id VoidExpr
 
         let updateStmt = case expr of
                          VoidExpr -> EmptyStatement
@@ -123,11 +122,7 @@ genForm (A.List ((A.Symbol sym):xs))
 
     | sym == "do" = do
         exprs <- mapM genForm xs
-
-        -- TODO: this won't work correctly in the presence of local bindings
-        tell $ map Statement $ init exprs
-
-        return $ last exprs
+        return $ CompoundExpr $ map Statement exprs
 
     | sym == "let" = do
         let ((A.VectorLiteral bindings):forms) = xs
@@ -138,9 +133,8 @@ genForm (A.List ((A.Symbol sym):xs))
         return $ CompoundExpr $ decls ++ (map Statement exprs)
 
     | sym == "quote" =
-        -- We only need head since quote only quotes and returns the first list.
-        let quotedForm = genQuoted $ head xs 
-        in genUniqueDecl (InstanceType $ Identifier "CLJList") quotedForm
+        -- We only need head since (quote ...) only quotes and returns the first form.
+        genQuotedForm $ head xs 
 
     -- TODO
     | sym == "var" = return $ VoidExpr
@@ -166,7 +160,7 @@ genForm (A.List ((A.Symbol sym):xs))
                       VoidType -> Statement lastExpr
                       t -> Return lastExpr
 
-        genUniqueInitDecl $ BlockLiteral {
+        return $ BlockLiteral {
             retType = rettype,
 
             -- TODO: support rest params
@@ -236,39 +230,19 @@ genForm (A.List forms) = do
     return $ CallExpr (head exprs) (tail exprs)
 
 -- Generates a quoted expression from a form.
--- TODO: a lot of these are really similar to genForm, can we leverage that?
-genQuoted :: A.Form -> Expr
-genQuoted A.EmptyForm = VoidExpr
-genQuoted (A.StringLiteral s) = NSStringLiteral $ show s
-genQuoted (A.IntegerLiteral i) = ToObjExpr $ IntLiteral $ fromInteger i
+genQuotedForm :: A.Form -> Writer (Seq BasicBlock) Expr
 
 -- TODO: this almost certainly isn't right
-genQuoted (A.Symbol s) = NSStringLiteral $ show $ escapedIdentifier s
-genQuoted (A.List xs) = listExpr $ map genQuoted xs
+genQuotedForm (A.Symbol s) = return $ NSStringLiteral $ show $ escapedIdentifier s
 
--- TODO
-genQuoted (A.DecimalLiteral d) = VoidExpr
+genQuotedForm (A.List xs) = do
+    exprs <- mapM genQuotedForm xs
+    return $ listExpr $ exprs
 
--- TODO
-genQuoted (A.CharacterLiteral c) = NSStringLiteral [c]
-
--- TODO
-genQuoted A.NilLiteral = extNilExpr
-
--- TODO
-genQuoted (A.BooleanLiteral b) = ToObjExpr $ BoolLiteral b
-
--- TODO
-genQuoted (A.VectorLiteral c) = VoidExpr
-
--- TODO
-genQuoted (A.MapLiteral c) = VoidExpr
-
--- TODO
-genQuoted (A.SetLiteral c) = VoidExpr
+genQuotedForm form = genForm form
 
 -- Returns declarations which initialize local bindings
-genBindings :: [A.Form] -> StatementGeneratorT [Statement]
+genBindings :: [A.Form] -> Writer (Seq BasicBlock) [Statement]
 genBindings [] = return []
 genBindings ((A.Symbol s):form:xs) = do
     let id = escapedIdentifier s
@@ -294,22 +268,6 @@ aliasIds :: Int -> [Identifier]
 aliasIds 0 = []
 aliasIds n = (aliasIds $ n - 1) ++ [Identifier $ "_a" ++ (show $ n - 1)]
 
--- Generates a unique variable declaration with the given type and initializer
--- Returns a IdentExpr to use the variable
-genUniqueDecl :: Type -> Expr -> StatementGeneratorT Expr
-genUniqueDecl t expr = do
-    id <- lift $ lift uniqueId
-
-    let var = Identifier $ "_v" ++ (show id)
-
-    -- TODO: this won't work correctly within a 'let' or similar form
-    tell $ [Declaration t var expr]
-
-    return $ IdentExpr var
-
-genUniqueInitDecl :: Expr -> StatementGeneratorT Expr
-genUniqueInitDecl expr = genUniqueDecl (typeof expr) expr
-
 -- An expression for the EXTNil singleton
 extNilExpr :: Expr
 extNilExpr = MessageExpr (IdentExpr $ Identifier "EXTNil") (Selector "null") []
@@ -325,33 +283,6 @@ nsDecimalNumberExpr str = MessageExpr (IdentExpr $ Identifier "NSDecimalNumber")
 -- Invokes -isEqual: against the first expression, with the second expression as the argument
 isEqualExpr :: Expr -> Expr -> Expr
 isEqualExpr a b = MessageExpr a (Selector "isEqual:") [b]
-
-{-
-    Code generation state
--}
-
-data GeneratorState = GeneratorState {
-    counter :: Integer
-}
-
-type GeneratorStateT = State GeneratorState
-
-uniqueId :: GeneratorStateT Integer
-uniqueId = do
-    c <- gets counter
-    put $ GeneratorState {
-        counter = succ c
-    }
-
-    return c
-
--- TODO: these writers should probably use a structure more efficient than a list
-type BlockGeneratorT = WriterT [BasicBlock] GeneratorStateT
-
--- TODO: might need to refactor or eliminate this writer,
--- since it's usually not correct to generate statements outside of the current code block
--- (e.g., within a 'let' form, which translates to a compound expression)
-type StatementGeneratorT = WriterT [Statement] BlockGeneratorT
 
 {-
     Objective-C syntax structures
@@ -481,6 +412,7 @@ data BasicBlock =
     SystemImport FilePath |
     FuncDecl FuncProto |
     FuncDef FuncProto [Statement] |
+    GlobalVarDecl Type Identifier Expr |
     ObjcInterface { className :: Identifier, superclass :: Identifier, protocols :: [Identifier], decls :: [ObjcDecl] } |
     ObjcProtocol { protocolName :: Identifier, protocols :: [Identifier], decls :: [ObjcDecl] } |
     -- Can also be used for class extensions (with an empty categoryName)
@@ -493,6 +425,7 @@ instance Show BasicBlock where
     show (SystemImport path) = "#import <" ++ path ++ ">"
     show (FuncDecl p) = (show p) ++ ";"
     show (FuncDef p stmts) = (show p) ++ " {\n" ++ (showDelimited "\n" stmts) ++ "\n}"
+    show (GlobalVarDecl t id expr) = (show t) ++ " " ++ (show id) ++ (showInitExpr expr) ++ ";"
     show (ObjcInterface c sc ps decls) =
         "@interface " ++ (show c) ++ " : " ++ (show sc) ++ " <" ++ (showDelimited ", " ps) ++ ">\n" ++ (showDelimited "\n" decls) ++ "\n@end"
 
@@ -518,6 +451,8 @@ instance Ord BasicBlock where
     -- Declarations
     compare FuncDecl {} _ = LT
     compare _ FuncDecl {} = GT
+    compare GlobalVarDecl {} _ = LT
+    compare _ GlobalVarDecl {} = GT
     compare ObjcProtocol {} _ = LT
     compare _ ObjcProtocol {} = GT
 
