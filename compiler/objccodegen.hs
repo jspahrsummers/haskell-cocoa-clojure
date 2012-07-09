@@ -17,8 +17,12 @@ type Seq = Seq.Seq
 codegen :: [A.Form] -> String
 codegen forms = showDelimited "\n" $ sort $ codegenMain forms
 
-codegenToFile :: Handle -> [A.Form] -> IO ()
-codegenToFile fd forms = hPutStrLn fd $ codegen forms
+codegenToFile :: FilePath -> [A.Form] -> IO ()
+codegenToFile path forms = do
+    fd <- openFile path WriteMode
+
+    hPutStrLn fd $ codegen forms
+    hClose fd
 
 codegenMain :: [A.Form] -> [BasicBlock]
 codegenMain forms =

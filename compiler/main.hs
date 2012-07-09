@@ -31,10 +31,8 @@ compile :: [FilePath] -> IO ()
 compile (x:xs) = do
     putStrLn $ "*** Compiling " ++ x
 
-    outFD <- openFile (replaceExtension x "m") WriteMode
     contents <- readFile x
-
-    either printErrorAndExit (codegenToFile outFD) (parse Parser.forms x contents)
+    either printErrorAndExit (codegenToFile $ replaceExtension x "m") (parse Parser.forms x contents)
 
 {-
     REPL
