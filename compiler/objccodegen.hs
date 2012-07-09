@@ -152,16 +152,12 @@ genForm (A.List ((A.Symbol sym):xs))
             lastExpr = last exprs
             lastType = typeof lastExpr
 
-            retstmt = case typeof (lastExpr) of
-                      VoidType -> Statement lastExpr
-                      t -> Return lastExpr
-
         return $ BlockLiteral {
             retType = Just IdType,
 
             -- TODO: support rest params
             blockParams = map (\p -> (IdType, p)) paramIds,
-            blockStmts = aliases ++ [Label $ Identifier "_recur"] ++ (map Statement $ init exprs) ++ [retstmt]
+            blockStmts = aliases ++ [Label $ Identifier "_recur"] ++ (map Statement $ init exprs) ++ [Return lastExpr]
         }
 
     | sym == "loop" = do
