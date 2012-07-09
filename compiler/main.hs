@@ -11,7 +11,7 @@ import System.Exit
 import System.FilePath
 import System.IO
 import System.Process
-import Text.Parsec (parse, ParseError)
+import Text.Parsec (ParseError)
 import Util
 
 printErrorAndExit :: ParseError -> IO ()
@@ -32,7 +32,7 @@ compile (x:xs) = do
     putStrLn $ "*** Compiling " ++ x
 
     contents <- readFile x
-    either printErrorAndExit (codegenToFile $ replaceExtension x "m") (parse Parser.forms x contents)
+    either printErrorAndExit (codegenToFile $ replaceExtension x "m") (parseForms x contents)
 
 {-
     REPL
@@ -58,7 +58,7 @@ repl' s formsSoFar =
 
     in if last now == '\EOT'
         then putStrLn "\nQuit"
-        else case (parse Parser.forms "stdin" $ foldl fixupBackspaces "" now) of
+        else case (parseForms "stdin" $ foldl fixupBackspaces "" now) of
              Left err -> do
                  hPutStrLn stderr $ show err
                  putStr "\n=> "
@@ -130,7 +130,7 @@ importLibs (x:xs) = do
         (Just p) -> do
             contents <- readFile p
 
-            let ef = parse Parser.forms p contents
+            let ef = parseForms p contents
             case ef of
                 (Left err) -> [] <$ printErrorAndExit err
                 (Right forms) -> do

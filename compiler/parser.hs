@@ -1,17 +1,20 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
-module Parser (forms)
+module Parser (parseForms)
     where
 
 import AST
-import Control.Monad
 import Control.Applicative
+import Control.Monad
 import Data.List
 import Data.Ratio
 import qualified Data.Set as Set
-import Text.Parsec hiding ((<|>), many)
+import Text.Parsec hiding ((<|>), many, State)
 import Text.Parsec.Char
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as P
+
+parseForms :: SourceName -> String -> Either ParseError [Form]
+parseForms name src = parse forms name src
 
 symbolSpecialChar = oneOf "*+!-_?/.%:&"
 
