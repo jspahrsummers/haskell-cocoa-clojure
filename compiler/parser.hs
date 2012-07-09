@@ -129,7 +129,7 @@ anonymousFunction = do
         renamedArgs = map renameArg $ sortBy sortArgs args
 
     -- #(...) => (fn [args] (...))
-    return $ List [Symbol "fn", VectorLiteral $ map Symbol renamedArgs, mapSymbols renameForm forms]
+    return $ List [Symbol "fn", VectorLiteral $ map Symbol renamedArgs, mapForm renameForm forms]
 
 keyword = do
     try $ char ':'
