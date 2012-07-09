@@ -425,7 +425,7 @@ instance Show BasicBlock where
     show (SystemImport path) = "#import <" ++ path ++ ">"
     show (FuncDecl p) = (show p) ++ ";"
     show (FuncDef p stmts) = (show p) ++ " {\n" ++ (showDelimited "\n" stmts) ++ "\n}"
-    show (GlobalVarDecl t id expr) = (show t) ++ " " ++ (show id) ++ (showInitExpr expr) ++ ";"
+    show (GlobalVarDecl t id expr) = showVarDeclaration t id expr
     show (ObjcInterface c sc ps decls) =
         "@interface " ++ (show c) ++ " : " ++ (show sc) ++ " <" ++ (showDelimited ", " ps) ++ ">\n" ++ (showDelimited "\n" decls) ++ "\n@end"
 
@@ -656,11 +656,21 @@ instance Typeof Statement where
 
 -- Shows a value, with all lines indented by one level
 showEntabbed :: Show a => a -> String
-showEntabbed val = intercalate "\n" $ map (\s -> '\t' : s) $ lines $ show val
+showEntabbed val = intercalate "\n" $ map ((:) '\t') $ lines $ show val
 
 -- Shows an indented, newline-separated list of values
 showEntabbedLines :: Show a => [a] -> String
 showEntabbedLines vals = intercalate "\n" $ map showEntabbed vals
+
+-- Shows a variable declaration
+showVarDeclaration :: Type -> Identifier -> Expr -> String
+showVarDeclaration (BlockType r pts) id expr =
+    (show r) ++ " (^" ++ (show id) ++ ")(" ++ (showDelimited ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
+
+showVarDeclaration (FunctionType r pts) id expr =
+    (show r) ++ " (*" ++ (show id) ++ ")(" ++ (showDelimited ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
+
+showVarDeclaration t id expr = (show t) ++ " " ++ (show id) ++ (showInitExpr expr) ++ ";"
 
 -- Returns a string for use following a declaration, to initialize it with the given expression
 showInitExpr :: Expr -> String
@@ -674,13 +684,7 @@ showInitExpr expr =
 instance Show Statement where
     show EmptyStatement = "\t;"
     show (Statement expr) = (showEntabbed expr) ++ ";"
-    show (Declaration (BlockType r pts) id expr) =
-        "\t" ++ (show r) ++ " (^" ++ (show id) ++ ")(" ++ (showDelimited ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
-
-    show (Declaration (FunctionType r pts) id expr) =
-        "\t" ++ (show r) ++ " (*" ++ (show id) ++ ")(" ++ (showDelimited ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
-
-    show (Declaration t id expr) = "\t" ++ (show t) ++ " " ++ (show id) ++ (showInitExpr expr) ++ ";"
+    show (Declaration t id expr) = intercalate "\n" $ map ((:) '\t') $ lines $ showVarDeclaration t id expr
     show (AutoreleasePool stmts) = "\t@autoreleasepool {\n" ++ (showEntabbedLines stmts) ++ "\n\t}"
     show (Return VoidExpr) = "\treturn;"
     show (Return expr) = "\treturn " ++ (show expr) ++ ";"
