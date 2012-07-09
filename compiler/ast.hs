@@ -1,7 +1,8 @@
 module AST (
         Form(..),
         collectSymbols,
-        mapSymbols
+        innerForms,
+        mapForm
     ) where
 
 import Data.List
@@ -9,6 +10,8 @@ import Data.Ratio
 import qualified Data.Set as Set
 import Control.Applicative ((<$>))
 import Util
+
+type Set = Set.Set
 
 data Form =
     EmptyForm |
@@ -20,9 +23,10 @@ data Form =
     NilLiteral |
     BooleanLiteral Bool |
     List [Form] |
-    Vector [Form] |
-    Map [(Form, Form)] |
-    Set [Form]
+    VectorLiteral [Form] |
+    MapLiteral [(Form, Form)] |
+    SetLiteral [Form]
+    deriving (Eq, Ord)
 
 instance Show Form where
     show EmptyForm = ""
@@ -41,38 +45,38 @@ instance Show Form where
     show NilLiteral = "nil"
     show (BooleanLiteral True) = "true"
     show (BooleanLiteral False) = "false"
-    show (List x) = "(" ++ showDelimList " " x ++ ")"
-    show (Vector x) = "[" ++ showDelimList " " x ++ "]"
-    show (Set x) = "#{" ++ showDelimList " " x ++ "}"
-    show (Map kvs) =
+    show (List x) = "(" ++ showDelimited " " x ++ ")"
+    show (VectorLiteral x) = "[" ++ showDelimited " " x ++ "]"
+    show (SetLiteral x) = "#{" ++ showDelimited " " x ++ "}"
+    show (MapLiteral kvps) = 
         let showPair :: (Form, Form) -> String
             showPair (k, v) = show k ++ " " ++ show v
-        in "{" ++ intercalate ", " (showPair <$> kvs) ++ "}"
+        in "{" ++ delimit ", " (map showPair kvps) ++ "}"
 
--- Maps over a list and unions the resulting sets
-unionMap :: Ord b => (a -> Set.Set b) -> [a] -> Set.Set b
-unionMap f l = Set.unions $ map f l
+-- Returns any forms nested one level within the given form
+innerForms :: Form -> [Form]
+innerForms (List forms) = forms
+innerForms (VectorLiteral forms) = forms
+innerForms (SetLiteral forms) = forms
+innerForms (MapLiteral kvps) =
+    let (keys, values) = unzip kvps
+    in keys ++ values
+
+innerForms _ = []
+
+-- Applies the function to the given form
+-- For collections, the function is first applied to the elements, then the collection itself
+mapForm :: (Form -> Form) -> Form -> Form
+mapForm f (List forms) = f $ List $ map (mapForm f) forms
+mapForm f (VectorLiteral forms) = f $ VectorLiteral $ map (mapForm f) forms
+mapForm f (SetLiteral forms) = f $ SetLiteral $ map (mapForm f) forms
+mapForm f (MapLiteral kvps) =
+    let mapPair (k, v) = (mapForm f k, mapForm f v)
+    in f $ MapLiteral $ map mapPair kvps
+
+mapForm f form = f form
 
 -- Collects all symbols used within a form
-collectSymbols :: Form -> Set.Set String
+collectSymbols :: Form -> Set String
 collectSymbols (Symbol s) = Set.singleton s
-collectSymbols (List forms) = unionMap collectSymbols forms
-collectSymbols (Vector forms) = unionMap collectSymbols forms
-collectSymbols (Set forms) = unionMap collectSymbols forms
-collectSymbols (Map kvps) =
-    let (keys, values) = unzip kvps
-    in (unionMap collectSymbols keys) `Set.union` (unionMap collectSymbols values)
-
-collectSymbols _ = Set.empty
-
--- Maps over all Symbols within a form, allowing them to be renamed or replaced
-mapSymbols :: (Form -> Form) -> Form -> Form
-mapSymbols f form@(Symbol _) = f form
-mapSymbols f (List forms) = List $ map (mapSymbols f) forms
-mapSymbols f (Vector forms) = Vector $ map (mapSymbols f) forms
-mapSymbols f (Set forms) = Set $ map (mapSymbols f) forms
-mapSymbols f (Map kvps) =
-    let (keys, values) = unzip kvps
-    in Map $ zip (map (mapSymbols f) keys) (map (mapSymbols f) values)
-
-mapSymbols f form = form
+collectSymbols form = Set.unions $ map collectSymbols $ innerForms form

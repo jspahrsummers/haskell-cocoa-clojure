@@ -1,8 +1,12 @@
 module Util (
-        maybeDouble, maybeFile, showDelimList, splitOn
+        delimit,
+        maybeDouble,
+        maybeFile,
+        showDelimited,
+        splitOn
     ) where
 
-import Data.List
+import qualified Data.Foldable as Foldable
 import System.Directory
 import System.IO
 
@@ -18,9 +22,18 @@ maybeDouble r =
     let dbl = fromRational r :: Double
     in if toRational dbl == r then Just dbl else Nothing
 
+-- Joins every string in the given collection with the given delimiter
+delimit :: Foldable.Foldable a => String -> a String -> String
+delimit s c =
+    -- If non-empty...
+    if Foldable.any (\_ -> True) c
+        then Foldable.foldr1 (\l r -> l ++ s ++ r) c
+        else ""
+
 -- Shows every value given, delimited by the given string
-showDelimList :: Show a => String -> [a] -> String
-showDelimList s l = intercalate s $ map show l
+-- The given functor must be non-empty
+showDelimited :: Foldable.Foldable a => Functor a => Show b => String -> a b -> String
+showDelimited s c = delimit s $ fmap show c
 
 -- Given a list separated by the given value, returns a list of lists with the separator removed
 splitOn :: Eq a => a -> [a] -> [[a]]

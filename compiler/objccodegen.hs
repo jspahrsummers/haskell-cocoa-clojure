@@ -13,7 +13,7 @@ import Util
 codegen :: [A.Form] -> String
 codegen forms =
     let st = GeneratorState { counter = 0 }
-    in showDelimList "\n" $ sort $ evalState (codegenMain forms) st
+    in showDelimited "\n" $ sort $ evalState (codegenMain forms) st
 
 codegenToFile :: Handle -> [A.Form] -> IO ()
 codegenToFile fd forms = hPutStrLn fd $ codegen forms
@@ -64,11 +64,11 @@ genForm (A.DecimalLiteral n) = case maybeDouble n of
             dec = nsDecimalNumberExpr $ show $ denominator n
         in return $ MessageExpr num (Selector "decimalNumberByDividingBy:") [dec]
 
-genForm (A.Vector forms) = do
+genForm (A.VectorLiteral forms) = do
     exprs <- mapM genForm forms
     genUniqueInitDecl $ NSArrayLiteral exprs
 
-genForm (A.Map kvs) = do
+genForm (A.MapLiteral kvs) = do
     let (keys, values) = unzip kvs
 
     keyExprs <- mapM genForm keys
@@ -76,7 +76,7 @@ genForm (A.Map kvs) = do
 
     genUniqueInitDecl $ NSDictionaryLiteral $ zip keyExprs valueExprs
 
-genForm (A.Set forms) = do
+genForm (A.SetLiteral forms) = do
     exprs <- mapM genForm forms
 
     let rec = IdentExpr $ Identifier "NSSet"
@@ -130,7 +130,7 @@ genForm (A.List ((A.Symbol sym):xs))
         return $ last exprs
 
     | sym == "let" = do
-        let ((A.Vector bindings):forms) = xs
+        let ((A.VectorLiteral bindings):forms) = xs
 
         decls <- genBindings bindings
         exprs <- mapM genForm forms
@@ -148,7 +148,7 @@ genForm (A.List ((A.Symbol sym):xs))
     | sym == "fn" = do
         -- TODO: support name? param
         -- TODO: support overloaded invoke methods
-        let ((A.Vector params):forms) = xs
+        let ((A.VectorLiteral params):forms) = xs
 
         exprs <- mapM genForm forms
 
@@ -175,7 +175,7 @@ genForm (A.List ((A.Symbol sym):xs))
         }
 
     | sym == "loop" = do
-        let ((A.Vector bindings):forms) = xs
+        let ((A.VectorLiteral bindings):forms) = xs
 
         decls <- genBindings bindings
         exprs <- mapM genForm forms
@@ -259,13 +259,13 @@ genQuoted A.NilLiteral = extNilExpr
 genQuoted (A.BooleanLiteral b) = ToObjExpr $ BoolLiteral b
 
 -- TODO
-genQuoted (A.Vector c) = VoidExpr
+genQuoted (A.VectorLiteral c) = VoidExpr
 
 -- TODO
-genQuoted (A.Map c) = VoidExpr
+genQuoted (A.MapLiteral c) = VoidExpr
 
 -- TODO
-genQuoted (A.Set c) = VoidExpr
+genQuoted (A.SetLiteral c) = VoidExpr
 
 -- Returns declarations which initialize local bindings
 genBindings :: [A.Form] -> StatementGeneratorT [Statement]
@@ -440,8 +440,8 @@ instance Show Type where
     show (InstanceType c) = (show c) ++ " *"
     show SelectorType = "SEL"
     show (PointerType t) = (show t) ++ " *"
-    show (FunctionType r params) = (show r) ++ " (*)(" ++ (showDelimList ", " params) ++ ")"
-    show (BlockType r params) = (show r) ++ " (^)(" ++ (showDelimList ", " params) ++ ")"
+    show (FunctionType r params) = (show r) ++ " (*)(" ++ (showDelimited ", " params) ++ ")"
+    show (BlockType r params) = (show r) ++ " (^)(" ++ (showDelimited ", " params) ++ ")"
     -- MethodTypes have no universal code representation
     show (InferredType expr) = "__typeof__(" ++ (show expr) ++ ")"
 
@@ -492,20 +492,20 @@ instance Show BasicBlock where
     show (LocalImport path) = "#import \"" ++ path ++ "\""
     show (SystemImport path) = "#import <" ++ path ++ ">"
     show (FuncDecl p) = (show p) ++ ";"
-    show (FuncDef p stmts) = (show p) ++ " {\n" ++ (showDelimList "\n" stmts) ++ "\n}"
+    show (FuncDef p stmts) = (show p) ++ " {\n" ++ (showDelimited "\n" stmts) ++ "\n}"
     show (ObjcInterface c sc ps decls) =
-        "@interface " ++ (show c) ++ " : " ++ (show sc) ++ " <" ++ (showDelimList ", " ps) ++ ">\n" ++ (showDelimList "\n" decls) ++ "\n@end"
+        "@interface " ++ (show c) ++ " : " ++ (show sc) ++ " <" ++ (showDelimited ", " ps) ++ ">\n" ++ (showDelimited "\n" decls) ++ "\n@end"
 
     show (ObjcProtocol n ps decls) =
         -- Aggressively forward-declare dependent protocols
         (concatMap (\p -> "@protocol " ++ (show p) ++ ";\n") ps) ++
-        "@protocol " ++ (show n) ++ " <" ++ (showDelimList ", " ps) ++ ">\n" ++ (showDelimList "\n" decls) ++ "\n@end"
+        "@protocol " ++ (show n) ++ " <" ++ (showDelimited ", " ps) ++ ">\n" ++ (showDelimited "\n" decls) ++ "\n@end"
 
     show (ObjcCategory cl cat decls) =
-        "@interface " ++ (show cl) ++ " (" ++ (show cat) ++ ")\n" ++ (showDelimList "\n" decls) ++ "\n@end"
+        "@interface " ++ (show cl) ++ " (" ++ (show cat) ++ ")\n" ++ (showDelimited "\n" decls) ++ "\n@end"
 
     show (ObjcImplementation cl (Identifier cat) defs) =
-        "@implementation " ++ (show cl) ++ (if null cat then "\n" else " (" ++ cat ++ ")\n") ++ (showDelimList "\n" defs) ++ "\n@end"
+        "@implementation " ++ (show cl) ++ (if null cat then "\n" else " (" ++ cat ++ ")\n") ++ (showDelimited "\n" defs) ++ "\n@end"
 
 -- BasicBlocks can be sorted by the order they should appear in generated code
 instance Ord BasicBlock where
@@ -578,7 +578,7 @@ instance Typeof ObjcDecl where
     typeof (MethodDecl p) = typeof p
 
 instance Show ObjcDecl where
-    show (PropertyDecl attrs t id) = "@property (" ++ (showDelimList ", " attrs) ++ ") " ++ (show t) ++ " " ++ (show id) ++ ";"
+    show (PropertyDecl attrs t id) = "@property (" ++ (showDelimited ", " attrs) ++ ") " ++ (show t) ++ " " ++ (show id) ++ ";"
     show (MethodDecl proto) = (show proto) ++ ";"
     show ProtocolRequired = "@required"
     show ProtocolOptional = "@optional"
@@ -589,7 +589,7 @@ data ObjcDef =
     deriving Eq
 
 instance Show ObjcDef where
-    show (MethodDef p stmts) = (show p) ++ " {\n" ++ (showDelimList "\n" stmts) ++ "\n}"
+    show (MethodDef p stmts) = (show p) ++ " {\n" ++ (showDelimited "\n" stmts) ++ "\n}"
 
 -- Any C or Objective-C expression
 data Expr =
@@ -668,7 +668,7 @@ instance Show Expr where
     show (SelectorLiteral s) = show s
     -- TODO: escape special characters
     show (NSStringLiteral s) = "@\"" ++ s ++ "\""
-    show (NSArrayLiteral exprs) = "@[" ++ (showDelimList ", " exprs) ++ "]"
+    show (NSArrayLiteral exprs) = "@[" ++ (showDelimited ", " exprs) ++ "]"
     show (NSDictionaryLiteral kvs) =
         let showPair :: (Expr, Expr) -> String
             showPair (k, v) = (show k) ++ ": " ++ (show v)
@@ -678,10 +678,10 @@ instance Show Expr where
         let showNamedParam :: (Type, Identifier) -> String
             showNamedParam (t, p) = (show t) ++ " " ++ (show p)
         in "(^ " ++ (maybe "" show r) ++ " (" ++ (intercalate ", " $ map showNamedParam ps) ++ ") {\n" ++
-            (showDelimList "\n" stmts) ++
+            (showDelimited "\n" stmts) ++
             "\n})"
 
-    show (CompoundExpr stmts) = "({\n" ++ (showDelimList "\n" stmts) ++ "\n})"
+    show (CompoundExpr stmts) = "({\n" ++ (showDelimited "\n" stmts) ++ "\n})"
     show (IdentExpr id) = show id
     show (AddrOfExpr id) = "(&" ++ (show id) ++ ")"
     show (DerefExpr expr) = "(*" ++ (show expr) ++ ")"
@@ -692,13 +692,13 @@ instance Show Expr where
             showMessageParts [] [] = ""
             showMessageParts [selpart] [] = selpart
             showMessageParts [selpart] [arg] = selpart ++ (show arg)
-            showMessageParts [selpart] args = selpart ++ (showDelimList ", " args)
+            showMessageParts [selpart] args = selpart ++ (showDelimited ", " args)
             showMessageParts (selpart:selparts) (arg:args) =
                 selpart ++ (show arg) ++ " " ++ (showMessageParts selparts args)
 
         in "[" ++ (show rec) ++ " " ++ (showMessageParts (selectorParts sel) args) ++ "]"
 
-    show (CallExpr expr args) = (show expr) ++ "(" ++ (showDelimList ", " args) ++ ")"
+    show (CallExpr expr args) = (show expr) ++ "(" ++ (showDelimited ", " args) ++ ")"
     show (IfExpr cond trueExpr falseExpr) = "(" ++ (show cond) ++ " ? " ++ (show trueExpr) ++ " : " ++ (show falseExpr) ++ ")"
     show (AndExpr a b) = "(" ++ (show a) ++ " && " ++ (show b) ++ ")"
     show (OrExpr a b) = "(" ++ (show a) ++ " || " ++ (show b) ++ ")"
@@ -740,10 +740,10 @@ instance Show Statement where
     show EmptyStatement = "\t;"
     show (Statement expr) = (showEntabbed expr) ++ ";"
     show (Declaration (BlockType r pts) id expr) =
-        "\t" ++ (show r) ++ " (^" ++ (show id) ++ ")(" ++ (showDelimList ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
+        "\t" ++ (show r) ++ " (^" ++ (show id) ++ ")(" ++ (showDelimited ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
 
     show (Declaration (FunctionType r pts) id expr) =
-        "\t" ++ (show r) ++ " (*" ++ (show id) ++ ")(" ++ (showDelimList ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
+        "\t" ++ (show r) ++ " (*" ++ (show id) ++ ")(" ++ (showDelimited ", " pts) ++ ")" ++ (showInitExpr expr) ++ ";"
 
     show (Declaration t id expr) = "\t" ++ (show t) ++ " " ++ (show id) ++ (showInitExpr expr) ++ ";"
     show (AutoreleasePool stmts) = "\t@autoreleasepool {\n" ++ (showEntabbedLines stmts) ++ "\n\t}"
