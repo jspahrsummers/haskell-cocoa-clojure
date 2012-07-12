@@ -1,6 +1,4 @@
-An attempt to compile Clojure down to Objective-C and integrate with Cocoa.
-
-Very experimental at the moment – don't expect much! Contributions are welcome.
+This was an attempt to build a Clojure -> Objective-C compiler in Haskell. It has since been abandoned and restarted (in Clojure this time) as [objective-clojure](https://github.com/jspahrsummers/objective-clojure).
 
 # License
 
